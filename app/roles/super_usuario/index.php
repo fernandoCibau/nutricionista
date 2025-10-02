@@ -40,6 +40,45 @@ try {
     error_log("Error al obtener usuarios: " . $e->getMessage());
 }
 
+// Manejo de mensajes de éxito y error desde la URL
+$mensaje = '';
+$tipo_mensaje = ''; // 'success' o 'danger'
+
+if (isset($_GET['exito'])) {
+    if ($_GET['exito'] === 'usuario_creado') {
+        $mensaje = '¡Usuario creado con éxito! Se ha enviado un email para que establezca su contraseña.';
+        $tipo_mensaje = 'success';
+    }
+    if ($_GET['exito'] === 'usuario_actualizado') {
+        $mensaje = '¡Usuario actualizado correctamente!';
+        $tipo_mensaje = 'success';
+    }
+    if ($_GET['exito'] === 'usuario_eliminado') {
+        $mensaje = 'El usuario ha sido eliminado correctamente.';
+        $tipo_mensaje = 'success';
+    }
+}
+
+if (isset($_GET['error'])) {
+    $tipo_mensaje = 'danger';
+    if ($_GET['error'] === 'email_existente') {
+        $mensaje = 'Error: El email ingresado ya está registrado en el sistema.';
+    } elseif ($_GET['error'] === 'campos_vacios' || $_GET['error'] === 'email_invalido') {
+        $mensaje = 'Error: Por favor, verifica que todos los campos estén completos y sean válidos.';
+    } elseif ($_GET['error'] === 'email_fallido') {
+        $mensaje = 'Error: No se pudo enviar el email de bienvenida. El usuario no fue creado para evitar inconsistencias.';
+    } elseif ($_GET['error'] === 'email_existente_actualizar') {
+        $mensaje = 'Error al actualizar: El email ingresado ya pertenece a otro usuario.';
+    } elseif ($_GET['error'] === 'campos_vacios_actualizar' || $_GET['error'] === 'email_invalido_actualizar') {
+        $mensaje = 'Error al actualizar: Por favor, verifica que todos los campos estén completos y sean válidos.';
+    } elseif ($_GET['error'] === 'password_incorrecta') {
+        $mensaje = 'Error: La contraseña de administrador es incorrecta. No se eliminó el usuario.';
+    } elseif ($_GET['error'] === 'auto_eliminacion') {
+        $mensaje = 'Error: No puedes eliminar tu propia cuenta de super administrador.';
+    } else {
+        $mensaje = 'Ha ocurrido un error inesperado en la base de datos. Por favor, intente de nuevo.';
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -93,6 +132,13 @@ try {
 
     <!-- Contenido principal del dashboard -->
     <main class="container my-5">
+        <?php if ($mensaje): ?>
+        <div class="alert alert-<?php echo $tipo_mensaje; ?> alert-dismissible fade show" role="alert">
+            <?php echo htmlspecialchars($mensaje); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php endif; ?>
+
         <!-- Tabla de Gestión de Usuarios -->
         <div class="card shadow-sm">
             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
@@ -144,7 +190,12 @@ try {
                                                 title="Editar">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
-                                        <a href="eliminar_usuario.php?id=<?php echo $usuario['id']; ?>" class="btn btn-sm btn-danger" title="Eliminar" onclick="return confirm('¿Estás seguro de que deseas eliminar a este usuario?');"><i class="bi bi-trash3"></i></a>
+                                        <button type="button" class="btn btn-sm btn-danger" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteUserModal"
+                                                data-user-id="<?php echo $usuario['id']; ?>"
+                                                data-user-name="<?php echo htmlspecialchars($usuario['nombre']); ?>"
+                                                title="Eliminar"><i class="bi bi-trash3"></i></button>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
@@ -234,6 +285,35 @@ try {
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Confirmar Eliminación -->
+    <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteUserModalLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="eliminar_usuario.php" method="POST">
+                    <div class="modal-body">
+                        <input type="hidden" name="delete_user_id" id="delete-user-id">
+                        <p>¿Estás seguro de que deseas eliminar permanentemente al usuario <strong id="delete-user-name"></strong>?</p>
+                        
+                        <div class="my-3">
+                            <label for="admin-password" class="form-label fw-bold">Ingresa tu contraseña para confirmar</label>
+                            <input type="password" class="form-control" id="admin-password" name="admin_password" required>
+                        </div>
+
+                        <p class="text-danger">Esta acción no se puede deshacer.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
                     </div>
                 </form>
             </div>
