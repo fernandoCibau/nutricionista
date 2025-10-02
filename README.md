@@ -14,7 +14,7 @@
   - 🚶 **Paciente:** Acceso a su información y seguimiento.
 - **Gestión de Usuarios (CRUD):** El super administrador puede crear, leer, actualizar y eliminar usuarios a través de una interfaz intuitiva con modales.
   - **Creación Segura:** Al crear un usuario, se le envía un email para que establezca su propia contraseña.
-  - **Eliminación Segura:** Se requiere la contraseña del administrador para confirmar la eliminación de un usuario.
+  - **Eliminación Segura:** Para evitar acciones accidentales, se requiere la contraseña del administrador para confirmar la eliminación de otro usuario.
 - **Paneles Dedicados:** Cada rol cuenta con un panel de control (dashboard) personalizado y seguro.
 - **Interfaz Moderna y Responsiva:** Diseño limpio y adaptable a cualquier dispositivo (móvil, tablet, escritorio) gracias a Bootstrap 5.
 - **Notificaciones Dinámicas:** Mensajes de éxito y error claros para informar al usuario sobre el resultado de sus acciones.
@@ -101,7 +101,7 @@ El proyecto está organizado de la siguiente manera para mantener el código lim
 │   ├── recuperar.php     # Formulario para solicitar reseteo de contraseña
 │   ├── procesar_recuperacion.php # Envía el email de reseteo
 │   ├── resetear.php      # Formulario para crear nueva contraseña
-│   └── procesar_reseteo.php # Guarda la nueva contraseña
+│   └── procesar_reseteo.php # Procesa y guarda la nueva contraseña
 │
 └── public/               # Archivos de la web pública/landing page
     └── index.html
@@ -124,7 +124,7 @@ Es el área privada para el usuario con los máximos privilegios.
 - **Dashboard de Gestión (`app/roles/super_usuario/index.php`):**
   - Muestra una tabla con todos los usuarios del sistema, su rol, email y fecha de registro.
   - Permite realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) a través de modales de Bootstrap, sin recargar la página.
-  - **Crear Usuario:** Abre un modal para añadir un nuevo usuario, asignarle un rol y una contraseña temporal.
+  - **Crear Usuario:** Abre un modal para añadir un nuevo usuario, asignarle un rol y una contraseña temporal. El sistema luego le envía un email para que establezca su contraseña final.
   - **Editar Usuario:** Abre un modal con los datos del usuario para modificar su nombre, email o rol.
   - **Eliminar Usuario:** Abre un modal de confirmación que, por seguridad, solicita la contraseña del super administrador para completar la acción.
 - **Navegación Segura:** Incluye un encabezado con una opción clara para "Cerrar Sesión", que destruye la sesión activa y protege la cuenta.
