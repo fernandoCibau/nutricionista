@@ -7,12 +7,17 @@
 ## ✨ Características Principales
 
 - **Autenticación Segura:** Sistema de inicio de sesión robusto con contraseñas hasheadas para garantizar la seguridad de los datos.
+- **Recuperación de Contraseña:** Flujo completo para que los usuarios puedan restablecer su contraseña de forma segura a través de un token enviado a su email.
 - **Gestión de Roles:** Control de acceso diferenciado para tres tipos de usuarios:
   - 👤 **Super Administrador:** Control total sobre la plataforma.
   - 🧑‍⚕️ **Nutricionista:** Gestión de sus pacientes y planes.
   - 🚶 **Paciente:** Acceso a su información y seguimiento.
+- **Gestión de Usuarios (CRUD):** El super administrador puede crear, leer, actualizar y eliminar usuarios a través de una interfaz intuitiva con modales.
+  - **Creación Segura:** Al crear un usuario, se le envía un email para que establezca su propia contraseña.
+  - **Eliminación Segura:** Se requiere la contraseña del administrador para confirmar la eliminación de un usuario.
 - **Paneles Dedicados:** Cada rol cuenta con un panel de control (dashboard) personalizado y seguro.
 - **Interfaz Moderna y Responsiva:** Diseño limpio y adaptable a cualquier dispositivo (móvil, tablet, escritorio) gracias a Bootstrap 5.
+- **Notificaciones Dinámicas:** Mensajes de éxito y error claros para informar al usuario sobre el resultado de sus acciones.
 
 ---
 
@@ -24,6 +29,7 @@ Este proyecto está construido con un stack de tecnologías moderno y ampliament
 - **PHP 8+:** Lenguaje de programación del lado del servidor para toda la lógica de negocio.
 - **MySQL:** Sistema de gestión de bases de datos para almacenar la información.
 - **PDO (PHP Data Objects):** Extensión para una conexión segura y estandarizada a la base de datos.
+- **PHPMailer:** Biblioteca para el envío de correos electrónicos (recuperación de contraseña, bienvenida).
 
 ### Frontend
 - **HTML5:** Estructura semántica del contenido.
@@ -78,16 +84,24 @@ El proyecto está organizado de la siguiente manera para mantener el código lim
 │   ├── assets/           # Recursos estáticos (CSS, JS, imágenes)
 │   │   └── css/
 │   │       └── styles.css      # Estilos para el login
+│   ├── libs/             # Bibliotecas de terceros
+│   │   └── vendor/       # Autoloader y paquetes de Composer (PHPMailer)
 │   ├── roles/            # Paneles de control por rol
 │   │   ├── super_usuario/
-│   │   │   └── index.php # Dashboard del Superadmin
+│   │   │   ├── index.php         # Dashboard del Superadmin (lista de usuarios)
+│   │   │   ├── crear_usuario.php   # Procesa la creación de usuarios
+│   │   │   ├── actualizar_usuario.php # Procesa la actualización
+│   │   │   └── eliminar_usuario.php  # Procesa la eliminación
 │   │   ├── nutricionista/
 │   │   └── paciente/
 │   ├── autenticar.php    # Script de procesamiento de login
 │   ├── config.php        # Configuración de la base de datos
-│   ├── dashboard_estilos.css # Estilos para los dashboards
 │   ├── index.php         # Página de inicio de sesión
-│   └── logout.php        # Script para cerrar sesión
+│   ├── logout.php        # Script para cerrar sesión
+│   ├── recuperar.php     # Formulario para solicitar reseteo de contraseña
+│   ├── procesar_recuperacion.php # Envía el email de reseteo
+│   ├── resetear.php      # Formulario para crear nueva contraseña
+│   └── procesar_reseteo.php # Guarda la nueva contraseña
 │
 └── public/               # Archivos de la web pública/landing page
     └── index.html
@@ -97,18 +111,22 @@ El proyecto está organizado de la siguiente manera para mantener el código lim
 
 ## 🎨 Interfaces Desarrolladas
 
-### 1. Página de Login (`app/index.php`)
+### 1. Flujo de Autenticación y Recuperación
 
-Una interfaz limpia y minimalista para que los usuarios accedan al sistema.
-- Muestra un formulario para ingresar email y contraseña.
-- Valida los campos y muestra mensajes de error claros y amigables en caso de credenciales incorrectas o campos vacíos.
-- Diseño responsivo que se adapta a cualquier tamaño de pantalla.
+- **Página de Login (`app/index.php`):** Interfaz limpia para que los usuarios accedan al sistema. Valida los campos y muestra mensajes de error claros.
+- **Página de Recuperación (`app/recuperar.php`):** Permite a los usuarios solicitar un enlace para restablecer su contraseña.
+- **Página de Reseteo (`app/resetear.php`):** Página segura a la que se accede mediante un token único para establecer una nueva contraseña.
 
-### 2. Panel de Super Administrador (`app/roles/super_usuario/index.php`)
+### 2. Panel de Super Administrador
 
 Es el área privada para el usuario con los máximos privilegios.
 - **Acceso Restringido:** Solo los usuarios con `role_id = 1` pueden ingresar. Cualquier otro intento es redirigido al login.
-- **Bienvenida Personalizada:** Muestra un mensaje de bienvenida con el nombre del usuario, obtenido de la variable de sesión.
+- **Dashboard de Gestión (`app/roles/super_usuario/index.php`):**
+  - Muestra una tabla con todos los usuarios del sistema, su rol, email y fecha de registro.
+  - Permite realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) a través de modales de Bootstrap, sin recargar la página.
+  - **Crear Usuario:** Abre un modal para añadir un nuevo usuario, asignarle un rol y una contraseña temporal.
+  - **Editar Usuario:** Abre un modal con los datos del usuario para modificar su nombre, email o rol.
+  - **Eliminar Usuario:** Abre un modal de confirmación que, por seguridad, solicita la contraseña del super administrador para completar la acción.
 - **Navegación Segura:** Incluye un encabezado con una opción clara para "Cerrar Sesión", que destruye la sesión activa y protege la cuenta.
 
 ---

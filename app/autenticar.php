@@ -11,15 +11,15 @@ session_start();
 require_once 'config.php';
 
 // 3. Asegurarse de que el script se ejecuta por una petición GET desde el formulario.
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     // Si alguien intenta acceder a este archivo directamente, lo redirigimos al login.
     header('Location: index.php');
     exit;
 }
 
 // 4. Obtener los datos del formulario. Usamos trim() para eliminar espacios en blanco.
-$email = trim($_GET['email'] ?? '');
-$password = trim($_GET['password'] ?? '');
+$email = trim($_POST['email'] ?? '');
+$password = trim($_POST['password'] ?? '');
 
 // 5. Validar que los campos no estén vacíos.
 if (empty($email) || empty($password)) {

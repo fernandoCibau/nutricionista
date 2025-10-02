@@ -65,7 +65,7 @@ if (isset($_GET['exito'])) {
                 <div class="success-message"><?php echo htmlspecialchars($exito); ?></div>
             <?php endif; ?>
 
-            <form action="autenticar.php" method="GET">
+            <form action="autenticar.php" method="POST">
                 <div class="input-group"><label for="email">Email</label><input type="email" id="email" name="email" class="form-input" required></div>
                 <div class="input-group"><label for="password">Contraseña</label><input type="password" id="password" name="password" class="form-input" required></div>
                 <a href="recuperar.php" class="forgot-password">¿Olvidaste tu contraseña?</a>
