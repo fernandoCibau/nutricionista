@@ -70,7 +70,7 @@ Para ejecutar este proyecto en tu entorno local, sigue estos pasos:
     -   Copia la carpeta completa del proyecto dentro del directorio raíz de tu servidor web (ej. `C:\xampp\htdocs\` si usas XAMPP).
 
 4.  **Acceder a la Aplicación:**
-    -   Abre tu navegador y ve a `http://localhost/nutri/app/`. Serás redirigido a la página de inicio de sesión.
+    -   Abre tu navegador y ve a `http://localhost/nutricionista/app`. Serás redirigido a la página de inicio de sesión.
 
 ---
 

@@ -3,9 +3,9 @@
 session_start();
 
 // 2. Verificar si el usuario está logueado y tiene el rol correcto.
-// Si no hay sesión o el rol no es 'superadmin', se redirige al login.
-if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 1) {
-    // Corregir ruta relativa: desde app/roles/super_usuario/ para ir al login en app/index.php
+// Si no hay sesión o el rol no es 'paciente', se redirige al login.
+if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 3) {
+    // Corregir ruta relativa: desde app/roles/paciente/ para ir al login en app/index.php
     header('Location: ../../index.php'); // Redirige a la página de login
     exit;
 }
@@ -16,29 +16,36 @@ $nombre_usuario = htmlspecialchars($_SESSION['user_nombre']);
 // Incluir el archivo de configuración para la conexión a la BD
 require_once '../../config.php';
 
-$usuarios = []; // Inicializar array de usuarios
-$roles = []; // Inicializar array de roles
+// Cargar las comidas recientes del paciente (tabla `diario`)
+$comidas = [];
 try {
-    // Consulta para obtener todos los usuarios con su rol
-    $sql_usuarios = "
-        SELECT 
-            u.id, u.nombre, u.email, u.creado_en, u.role_id,
-            r.nombre as nombre_rol 
-        FROM usuarios u
-        JOIN roles r ON u.role_id = r.id
-        ORDER BY u.nombre ASC";
-    $stmt_usuarios = $pdo->query($sql_usuarios);
-    $usuarios = $stmt_usuarios->fetchAll();
-
-    // Consulta para obtener todos los roles (para el dropdown del modal)
-    $sql_roles = "SELECT id, nombre FROM roles ORDER BY nombre ASC";
-    $stmt_roles = $pdo->query($sql_roles);
-    $roles = $stmt_roles->fetchAll();
-
+    $stmt = $pdo->prepare("SELECT id, id_paciente, fecha_hora, tipo_comida, detalles, url_foto FROM diario WHERE id_paciente = ? ORDER BY fecha_hora DESC LIMIT 10");
+    $stmt->execute([$_SESSION['user_id']]);
+    $comidas = $stmt->fetchAll();
 } catch (PDOException $e) {
-    // En un caso real, aquí se manejaría el error (ej. log)
-    // Por ahora, la tabla simplemente aparecerá vacía si hay un error.
-    error_log("Error al obtener usuarios: " . $e->getMessage());
+    error_log("Error al obtener comidas (diario): " . $e->getMessage());
+}
+
+// Obtener próximo turno programado
+$proximo_turno = null;
+try {
+    $stmt = $pdo->prepare("SELECT id, id_nutricionista, id_paciente, fecha_hora, estado, senia, pagado, creado_en FROM turnos WHERE id_paciente = ? AND fecha_hora > NOW() AND estado = 'programado' ORDER BY fecha_hora ASC LIMIT 1");
+    $stmt->execute([$_SESSION['user_id']]);
+    $proximo_turno = $stmt->fetch();
+} catch (PDOException $e) {
+    error_log("Error al obtener turno: " . $e->getMessage());
+}
+
+// Obtener la receta/dieta más reciente (tabla `recetas`) — las recetas están asociadas a nutricionistas,
+// si la relación paciente->receta no existe en tu modelo deberías adaptar esto.
+$dieta = null;
+try {
+    // Intento obtener una receta publicada (ejemplo simple: se listan las recetas publicadas)
+    $stmt = $pdo->prepare("SELECT id, id_nutricionista, titulo, contenido, creado_en FROM recetas WHERE publicado = 1 ORDER BY creado_en DESC LIMIT 1");
+    $stmt->execute();
+    $dieta = $stmt->fetch();
+} catch (PDOException $e) {
+    error_log("Error al obtener receta (recetas): " . $e->getMessage());
 }
 
 // Manejo de mensajes de éxito y error desde la URL
@@ -75,7 +82,7 @@ if (isset($_GET['error'])) {
     } elseif ($_GET['error'] === 'password_incorrecta') {
         $mensaje = 'Error: La contraseña de administrador es incorrecta. No se eliminó el usuario.';
     } elseif ($_GET['error'] === 'auto_eliminacion') {
-        $mensaje = 'Error: No puedes eliminar tu propia cuenta de super administrador.';
+        $mensaje = 'Error: No puedes eliminar tu propia cuenta de paciente.';
     } else {
         $mensaje = 'Ha ocurrido un error inesperado en la base de datos. Por favor, intente de nuevo.';
     }
@@ -103,7 +110,7 @@ if (isset($_GET['error'])) {
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="#">
                 <i class="bi bi-heart-pulse fs-4 me-2"></i>
-                <strong>NutriApp - Panel Superadmin</strong>
+                <strong>NutriApp - Panel Paciente</strong>
             </a>
 
             <!-- Botón Hamburguesa para móvil -->
@@ -120,6 +127,11 @@ if (isset($_GET['error'])) {
                             <i class="bi bi-person-circle me-1"></i>
                             <?php echo $nombre_usuario; ?>
                         </span>
+                    </li>
+                    <li class="nav-item me-2">
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                            <i class="bi bi-key-fill"></i><span class="ms-1">Cambiar Contraseña</span>
+                        </a>
                     </li>
                     <li class="nav-item"> <!-- Botón de cerrar sesión -->
                         <a class="nav-link logout-link" href="../../logout.php">
@@ -140,69 +152,114 @@ if (isset($_GET['error'])) {
         </div>
         <?php endif; ?>
 
-        <!-- Tabla de Gestión de Usuarios -->
-        <div class="card shadow-sm">
-            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                <h2 class="h4 mb-0">Gestión de Usuarios</h2>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
-                    <i class="bi bi-person-plus-fill me-2"></i>
-                    Agregar Usuario
-                </button>
+        <!-- Dashboard Paciente: Subir comidas, ver instrucciones, turno y dieta -->
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="h5 mb-0">Registrar Comida</h3>
+                        <small class="text-muted">Comparte tus fotos y comentarios</small>
+                    </div>
+                    <div class="card-body">
+                        <form action="subir_comida.php" method="POST" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="foto" class="form-label">Foto de la comida</label>
+                                <input class="form-control" type="file" id="foto" name="foto" accept="image/*" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="comentario" class="form-label">Comentario</label>
+                                <textarea class="form-control" id="comentario" name="comentario" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tipo_comida" class="form-label">Tipo de comida</label>
+                                <select class="form-select" id="tipo_comida" name="tipo_comida" required>
+                                    <option value="desayuno">Desayuno</option>
+                                    <option value="almuerzo">Almuerzo</option>
+                                    <option value="merienda">Merienda</option>
+                                    <option value="cena">Cena</option>
+                                </select>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <button class="btn btn-primary" type="submit">Subir</button>
+                                <small class="text-muted">Máx. 5MB. Imágenes JPG, PNG, WEBP</small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Rol</th>
-                                <th>Email</th>
-                                <th>Fecha de Registro</th>
-                                <th class="text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (empty($usuarios)): ?>
-                                <tr>
-                                    <td colspan="5" class="text-center">No se encontraron usuarios.</td>
-                                </tr>
-                            <?php endif; ?>
-                            <?php foreach ($usuarios as $usuario): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($usuario['nombre']); ?></td>
-                                    <td>
-                                        <span class="badge 
-                                            <?php echo $usuario['nombre_rol'] === 'superadmin' ? 'bg-danger' : ($usuario['nombre_rol'] === 'nutricionista' ? 'bg-info' : 'bg-secondary'); ?>">
-                                            <?php echo htmlspecialchars(ucfirst($usuario['nombre_rol'])); ?>
-                                        </span>
-                                    </td>
-                                    <td><?php echo htmlspecialchars($usuario['email']); ?></td>
-                                    <td><?php echo date('d/m/Y', strtotime($usuario['creado_en'])); ?></td>
-                                    <td class="text-center">
-                                        <!-- Ocultar botones para el propio superadmin para evitar auto-eliminación -->
-                                        <?php if ($_SESSION['user_id'] !== $usuario['id']): ?>
-                                        <button type="button" class="btn btn-sm btn-warning me-2 edit-btn" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#editUserModal"
-                                                data-user-id="<?php echo $usuario['id']; ?>"
-                                                data-user-name="<?php echo htmlspecialchars($usuario['nombre']); ?>"
-                                                data-user-email="<?php echo htmlspecialchars($usuario['email']); ?>"
-                                                data-user-role-id="<?php echo $usuario['role_id']; ?>"
-                                                title="Editar">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-danger" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#deleteUserModal"
-                                                data-user-id="<?php echo $usuario['id']; ?>"
-                                                data-user-name="<?php echo htmlspecialchars($usuario['nombre']); ?>"
-                                                title="Eliminar"><i class="bi bi-trash3"></i></button>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="h5 mb-0">Próximo Turno</h3>
+                    </div>
+                    <div class="card-body">
+                        <?php if ($proximo_turno): ?>
+                            <p><strong>Fecha:</strong> <?php echo date('d/m/Y H:i', strtotime($proximo_turno['fecha_hora'])); ?></p>
+                            <div class="mb-2">
+                                <strong>Seña:</strong> <?php echo htmlspecialchars($proximo_turno['senia'] ?? 'N/A'); ?>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Pagado:</strong> <?php echo !empty($proximo_turno['pagado']) ? 'Sí' : 'No'; ?>
+                            </div>
+                            <form action="cancelar_turno.php" method="POST" onsubmit="return confirm('¿Seguro que deseas cancelar este turno?');">
+                                <input type="hidden" name="fecha_hora" value="<?php echo htmlspecialchars($proximo_turno['fecha_hora']); ?>">
+                                <input type="hidden" name="id_nutricionista" value="<?php echo htmlspecialchars($proximo_turno['id_nutricionista']); ?>">
+                                <button class="btn btn-danger">Cancelar Turno</button>
+                            </form>
+                        <?php else: ?>
+                            <p class="text-muted">No tienes turnos programados.</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mt-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="h6 mb-0">Dieta</h3>
+                    </div>
+                    <div class="card-body">
+                        <?php if ($dieta): ?>
+                            <p class="mb-2">Última receta: <?php echo date('d/m/Y', strtotime($dieta['creado_en'])); ?></p>
+                            <a href="descargar_dieta.php?titulo=<?php echo urlencode($dieta['titulo']); ?>&creado_en=<?php echo urlencode($dieta['creado_en']); ?>" class="btn btn-outline-primary">Descargar Dieta</a>
+                        <?php else: ?>
+                            <p class="text-muted">Aún no hay recetas públicas disponibles.</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="h5 mb-0">Tus últimas comidas</h3>
+                        <small class="text-muted">Hasta 10 registros</small>
+                    </div>
+                    <div class="card-body">
+                        <?php if (empty($comidas)): ?>
+                            <p class="text-muted">No has registrado comidas aún.</p>
+                        <?php else: ?>
+                            <div class="row g-3">
+                                <?php foreach ($comidas as $c): ?>
+                                    <div class="col-sm-6 col-md-4">
+                                        <div class="card h-100">
+                                            <?php if (!empty($c['url_foto'])): ?>
+                                                <img src="../../..<?php echo htmlspecialchars($c['url_foto']); ?>" class="card-img-top" alt="Foto comida">
+                                            <?php endif; ?>
+                                            <div class="card-body">
+                                                <h6 class="card-title text-capitalize"><?php echo htmlspecialchars($c['tipo_comida']); ?></h6>
+                                                <p class="card-text small text-muted"><?php echo date('d/m/Y H:i', strtotime($c['fecha_hora'])); ?></p>
+                                                <?php if (!empty($c['detalles'])): ?>
+                                                    <p class="card-text"><?php echo nl2br(htmlspecialchars($c['detalles'])); ?></p>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -324,6 +381,38 @@ if (isset($_GET['error'])) {
     <footer class="text-center text-muted py-4 mt-auto">
         <p>&copy; 2024 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
     </footer>
+
+    <!-- Modal para Cambiar Contraseña -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changePasswordModalLabel">Cambiar Contraseña</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="change-password-form" action="cambiar_password.php" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Contraseña actual</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">Nueva contraseña</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password_confirm" class="form-label">Confirmar nueva contraseña</label>
+                            <input type="password" class="form-control" id="new_password_confirm" name="new_password_confirm" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Cambiar contraseña</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Script de Bootstrap para que funcione el menú hamburguesa -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
