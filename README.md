@@ -131,6 +131,98 @@ Es el área privada para el usuario con los máximos privilegios.
 
 ---
 
+## 🩺 Panel del Nutricionista (nuevos endpoints y reglas)
+
+El rol `nutricionista` tiene ahora funcionalidades ampliadas para gestionar SUS pacientes. Importante: un nutricionista solo puede ver y actuar sobre pacientes que le pertenecen —esto se determina en este orden:
+
+- Si la tabla `usuarios` tiene la columna `assigned_nutricionista_id`, se usa para la asignación directa.
+- Si no existe esa columna, la pertenencia se deriva de la existencia de al menos un registro en la tabla `turnos` entre el nutricionista y el paciente.
+
+Endpoints disponibles en `app/roles/nutricionista/`:
+
+- `index.php` — Panel principal (muestra solo pacientes asignados).
+- `crear_usuario.php` — Crea pacientes (server-side valida que el rol sea `paciente` y, si existe, asigna `assigned_nutricionista_id`).
+- `actualizar_usuario.php` — Actualiza datos de pacientes que te pertenecen (no permite cambiar el rol a otro distinto de `paciente`).
+- `eliminar_usuario.php` — Solicita al super admin la eliminación de un paciente; no borra datos directamente. Solo puede solicitar eliminación de pacientes que te pertenezcan.
+- `crear_turno.php` — Crear un turno para un paciente asignado.
+- `cancelar_turno.php` — Cancelar un turno que pertenezca al nutricionista.
+- `registrar_pago.php` — Registrar seña / marcar pago y monto de una consulta (por turno_id o paciente+fecha).
+- `vista_turnos.php` — Vista básica semanal/mensual de tus turnos con acciones rápidas (cancelar, marcar pago).
+- `ver_historia.php` — Ver la historia clínica de un paciente que te pertenece.
+- `agregar_dieta.php` — Agregar una dieta asociada a un paciente que te pertenece.
+- `agregar_habito.php` — Agregar un hábito recomendado para un paciente que te pertenece.
+- `gestionar_jornada.php` / `bloquear_dia.php` — Guardar jornada y bloquear días (si las tablas correspondientes existen).
+- `actualizar_password.php` — Cambiar tu propia contraseña (verificando la actual).
+
+Mensajes de error comunes (GET params): `no_autorizado`, `paciente_no_encontrado`, `turno_no_encontrado`, `tabla_dietas_no_exist`, `tabla_habitos_no_exist`, `tabla_jornadas_no_exist`, `id_invalido`.
+
+Si alguna tabla auxiliar (por ej. `notificaciones`, `historias`, `dietas`, `habitos`, `jornadas`, `dias_no_laborales`) no existe, los endpoints devolverán un error visible y lo registrarán en `error_log`.
+
+SQL sugerido (esquema mínimo) para crear las tablas auxiliares:
+
+```sql
+-- Notificaciones (solicitudes de eliminación entre otras)
+CREATE TABLE IF NOT EXISTS notificaciones (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  tipo VARCHAR(50) NOT NULL,
+  contenido TEXT NOT NULL,
+  creado_por INT DEFAULT NULL,
+  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
+  leido TINYINT(1) DEFAULT 0
+);
+
+-- Historias clínicas (últimas entradas por paciente)
+CREATE TABLE IF NOT EXISTS historias (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_paciente INT NOT NULL,
+  resumen TEXT,
+  antecedentes TEXT,
+  notas_nutri TEXT,
+  bloqueada TINYINT(1) DEFAULT 0,
+  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Dietas
+CREATE TABLE IF NOT EXISTS dietas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_paciente INT NOT NULL,
+  id_nutricionista INT NOT NULL,
+  titulo VARCHAR(255) NOT NULL,
+  contenido TEXT NOT NULL,
+  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Habitos
+CREATE TABLE IF NOT EXISTS habitos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_paciente INT NOT NULL,
+  id_nutricionista INT NOT NULL,
+  descripcion TEXT NOT NULL,
+  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Jornadas
+CREATE TABLE IF NOT EXISTS jornadas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_nutricionista INT NOT NULL,
+  hora_inicio TIME NOT NULL,
+  hora_fin TIME NOT NULL,
+  dias_semana VARCHAR(20) NOT NULL, -- e.g. '1,2,3,4,5'
+  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Días no laborales
+CREATE TABLE IF NOT EXISTS dias_no_laborales (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_nutricionista INT NOT NULL,
+  fecha DATE NOT NULL,
+  motivo VARCHAR(255),
+  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+---
+
 ## ✒️ Autores
 
 Este proyecto fue desarrollado con dedicación por:

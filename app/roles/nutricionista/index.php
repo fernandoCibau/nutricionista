@@ -3,9 +3,9 @@
 session_start();
 
 // 2. Verificar si el usuario está logueado y tiene el rol correcto.
-// Si no hay sesión o el rol no es 'superadmin', se redirige al login.
+// Si no hay sesión o el rol no es 'nutricionista', se redirige al login.
 // Corregir ruta relativa: desde app/roles/nutri/ para ir al login en app/index.php
-if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 1) {
+if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 2) {
     header('Location: ../../index.php'); // Redirige a la página de login
     exit;
 }
@@ -19,25 +19,42 @@ require_once '../../config.php';
 $usuarios = []; // Inicializar array de usuarios
 $roles = []; // Inicializar array de roles
 try {
-    // Consulta para obtener todos los usuarios con su rol
-    $sql_usuarios = "
-        SELECT 
-            u.id, u.nombre, u.email, u.creado_en, u.role_id,
-            r.nombre as nombre_rol 
-        FROM usuarios u
-        JOIN roles r ON u.role_id = r.id
-        ORDER BY u.nombre ASC";
-    $stmt_usuarios = $pdo->query($sql_usuarios);
-    $usuarios = $stmt_usuarios->fetchAll();
+    // Queremos que el nutricionista vea SOLO SUS PACIENTES.
+    // Estrategia:
+    // 1) Si existe la columna `assigned_nutricionista_id` en `usuarios`, la usamos.
+    // 2) Si no existe, buscamos pacientes que tengan al nutricionista en la tabla `turnos`.
 
-    // Consulta para obtener todos los roles (para el dropdown del modal)
-    $sql_roles = "SELECT id, nombre FROM roles ORDER BY nombre ASC";
+    // 1) comprobar columna
+    $colCheck = $pdo->query("SHOW COLUMNS FROM usuarios LIKE 'assigned_nutricionista_id'");
+    if ($colCheck && $colCheck->rowCount() > 0) {
+        // Hay asignación directa en usuarios
+        $sql = "SELECT u.id, u.nombre, u.email, u.creado_en, u.role_id, r.nombre as nombre_rol
+                FROM usuarios u
+                JOIN roles r ON u.role_id = r.id
+                WHERE u.assigned_nutricionista_id = ? AND r.nombre = 'paciente'
+                ORDER BY u.nombre ASC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$_SESSION['user_id']]);
+        $usuarios = $stmt->fetchAll();
+    } else {
+        // No hay campo de asignación directa: derivamos pacientes desde turnos
+        $sql = "SELECT DISTINCT u.id, u.nombre, u.email, u.creado_en, u.role_id, r.nombre as nombre_rol
+                FROM usuarios u
+                JOIN roles r ON u.role_id = r.id
+                JOIN turnos t ON t.id_paciente = u.id
+                WHERE t.id_nutricionista = ? AND r.nombre = 'paciente'
+                ORDER BY u.nombre ASC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$_SESSION['user_id']]);
+        $usuarios = $stmt->fetchAll();
+    }
+
+    // Solo permitir crear usuarios con rol 'paciente' desde este panel
+    $sql_roles = "SELECT id, nombre FROM roles WHERE nombre = 'paciente' ORDER BY nombre ASC";
     $stmt_roles = $pdo->query($sql_roles);
     $roles = $stmt_roles->fetchAll();
 
 } catch (PDOException $e) {
-    // En un caso real, aquí se manejaría el error (ej. log)
-    // Por ahora, la tabla simplemente aparecerá vacía si hay un error.
     error_log("Error al obtener usuarios: " . $e->getMessage());
 }
 
@@ -75,7 +92,7 @@ if (isset($_GET['error'])) {
     } elseif ($_GET['error'] === 'password_incorrecta') {
         $mensaje = 'Error: La contraseña de administrador es incorrecta. No se eliminó el usuario.';
     } elseif ($_GET['error'] === 'auto_eliminacion') {
-        $mensaje = 'Error: No puedes eliminar tu propia cuenta de super administrador.';
+        $mensaje = 'Error: No puedes eliminar tu propia cuenta de nutricionista.';
     } else {
         $mensaje = 'Ha ocurrido un error inesperado en la base de datos. Por favor, intente de nuevo.';
     }
@@ -103,7 +120,7 @@ if (isset($_GET['error'])) {
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="#">
                 <i class="bi bi-heart-pulse fs-4 me-2"></i>
-                <strong>NutriApp - Panel Superadmin</strong>
+                <strong>NutriApp - Panel Nutricionista</strong>
             </a>
 
             <!-- Botón Hamburguesa para móvil -->
@@ -172,14 +189,14 @@ if (isset($_GET['error'])) {
                                     <td><?php echo htmlspecialchars($usuario['nombre']); ?></td>
                                     <td>
                                         <span class="badge 
-                                            <?php echo $usuario['nombre_rol'] === 'superadmin' ? 'bg-danger' : ($usuario['nombre_rol'] === 'nutricionista' ? 'bg-info' : 'bg-secondary'); ?>">
+                                            <?php echo $usuario['nombre_rol'] === 'nutricionista' ? 'bg-danger' : ($usuario['nombre_rol'] === 'nutricionista' ? 'bg-info' : 'bg-secondary'); ?>">
                                             <?php echo htmlspecialchars(ucfirst($usuario['nombre_rol'])); ?>
                                         </span>
                                     </td>
                                     <td><?php echo htmlspecialchars($usuario['email']); ?></td>
                                     <td><?php echo date('d/m/Y', strtotime($usuario['creado_en'])); ?></td>
                                     <td class="text-center">
-                                        <!-- Ocultar botones para el propio superadmin para evitar auto-eliminación -->
+                                        <!-- Ocultar botones para el propio nutricionista para evitar auto-eliminación -->
                                         <?php if ($_SESSION['user_id'] !== $usuario['id']): ?>
                                         <button type="button" class="btn btn-sm btn-warning me-2 edit-btn" 
                                                 data-bs-toggle="modal" 
@@ -303,18 +320,18 @@ if (isset($_GET['error'])) {
                 <form action="eliminar_usuario.php" method="POST">
                     <div class="modal-body">
                         <input type="hidden" name="delete_user_id" id="delete-user-id">
-                        <p>¿Estás seguro de que deseas eliminar permanentemente al usuario <strong id="delete-user-name"></strong>?</p>
-                        
-                        <div class="my-3">
-                            <label for="admin-password" class="form-label fw-bold">Ingresa tu contraseña para confirmar</label>
-                            <input type="password" class="form-control" id="admin-password" name="admin_password" required>
+                        <p>Vas a solicitar la eliminación del usuario <strong id="delete-user-name"></strong>. Esta solicitud será revisada por el super administrador.</p>
+
+                        <div class="mb-3">
+                            <label for="delete-reason" class="form-label">Motivo (opcional)</label>
+                            <textarea class="form-control" id="delete-reason" name="delete_reason" rows="3" placeholder="Explica por qué solicitas la eliminación..."></textarea>
                         </div>
 
-                        <p class="text-danger">Esta acción no se puede deshacer.</p>
+                        <p class="text-muted">No se eliminará ningún dato automáticamente. El super admin recibirá la solicitud.</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+                        <button type="submit" class="btn btn-danger">Solicitar Eliminación</button>
                     </div>
                 </form>
             </div>
