@@ -4,8 +4,8 @@ session_start();
 
 // 2. Verificar si el usuario está logueado y tiene el rol correcto.
 // Si no hay sesión o el rol no es 'superadmin', se redirige al login.
+// Corregir ruta relativa: desde app/roles/nutri/ para ir al login en app/index.php
 if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 1) {
-    // Corregir ruta relativa: desde app/roles/super_usuario/ para ir al login en app/index.php
     header('Location: ../../index.php'); // Redirige a la página de login
     exit;
 }
