@@ -41,6 +41,9 @@ document.addEventListener('DOMContentLoaded', function () {
             var inputUserId = deleteUserModal.querySelector('#delete-user-id');
             modalText.textContent = userName;
             inputUserId.value = userId;
+            // Resetear motivo opcional
+            var reason = deleteUserModal.querySelector('#delete-reason');
+            if (reason) reason.value = '';
         });
     }
 });
