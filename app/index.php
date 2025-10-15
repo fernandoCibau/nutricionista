@@ -45,7 +45,7 @@ if (isset($_GET['exito'])) {
             </a>
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link inicio-link" href="../index.php">Inicio</a> <!-- Estilo mejorado -->
+                    <a class="nav-link inicio-link" href="../public/index.php">Inicio</a> <!-- Estilo mejorado -->
                 </li>
             </ul>
         </div>

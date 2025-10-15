@@ -1,0 +1,157 @@
+:root{
+  --bg-soft: #f8f9fa;
+}
+
+html, body { height: 100%; }
+body { display: flex; flex-direction: column; background: var(--bg-soft); }
+main#app { flex: 1 0 auto; }
+footer { flex-shrink: 0; }
+
+.card-hover { transition: transform .12s ease, box-shadow .12s ease; }
+.card-hover:hover { transform: translateY(-2px); box-shadow: 0 0.5rem 1rem rgba(0,0,0,.08); }
+
+/* Mobile-first optimizations for capture forms */
+.capture-input { height: 54px; }
+.sticky-actions { position: sticky; bottom: 0; background: white; padding: .75rem; box-shadow: 0 -2px 12px rgba(0,0,0,.06); }
+
+/* Tables on small screens */
+.table-responsive-sm { overflow-x: auto; }
+
+/* Utility */
+.cursor-pointer { cursor: pointer; }
+
+/* Desktop scaling: emulate 200% browser zoom on large screens */
+@media (min-width: 992px) {
+  /* Scale down overall UI to ~75% of previous (was 200%) */
+  html { font-size: 150%; }
+}
+
+/* Consistent sizing for Patient role (navbar + titles) */
+.role-paciente .navbar .navbar-brand { font-size: 1rem; }
+.role-paciente .navbar .nav-link { font-size: .95rem; }
+.role-paciente .page-title { font-size: 1.15rem; font-weight: 600; }
+
+/* Icon square buttons */
+.btn-icon { width: 2.25rem; height: 2.25rem; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.btn-icon.btn-sm { width: 2rem; height: 2rem; }
+
+/* Wider container on desktop to keep actions inline */
+@media (min-width: 992px) { .container { max-width: 1280px; } }
+@media (min-width: 1200px) { .container { max-width: 1400px; } }
+@media (min-width: 1400px) { .container { max-width: 1600px; } }
+
+/* Prevent action buttons wrapping inside tables */
+.nowrap { white-space: nowrap; }
+
+/* Wider search input for pacientes */
+.search-wide { width: clamp(320px, 50vw, 640px); }
+/* Wider search input for calendar */
+.calendar-search-wide { width: clamp(340px, 60vw, 800px); }
+
+/* Desktop form sizing for better visibility on PC */
+@media (min-width: 992px) {
+  .form-tall { min-height: 3.25rem; }
+.textarea-tall { min-height: 12rem; }
+}
+
+/* Monthly calendar styles */
+.calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .5rem; }
+.calendar-header { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .5rem; font-weight: 600; color: #6c757d; text-align: center; margin-bottom: .5rem; }
+.calendar-header .cal-hcell { padding: .25rem 0; }
+.cal-day { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: .5rem; padding: .5rem; min-height: 4rem; cursor: pointer; }
+.cal-day:hover { box-shadow: 0 0.5rem 1rem rgba(0,0,0,.08); }
+.cal-day .day-num { font-weight: 600; color: #6c757d; }
+.cal-day .empty { visibility: hidden; }
+@media (min-width: 992px) { .cal-day { min-height: 7rem; } }
+
+/* Calendar hour slots (occupied vs free) */
+.cal-slots { display: flex; flex-direction: column; gap: 2px; margin-top: .25rem; }
+.cal-slot { height: 6px; border-radius: 4px; background: var(--bs-border-color); }
+.cal-slot.busy { background: var(--bs-primary); }
+.cal-slot.free { background: var(--bs-border-color); }
+
+/* Patient monthly diary meal slots */
+.meal-slots { display: flex; flex-direction: column; gap: 4px; margin-top: .35rem; }
+.meal-slot { height: 14px; border-radius: 6px; background: var(--bs-border-color); cursor: pointer; display: flex; align-items: center; padding: 0 6px; }
+.meal-slot.busy { background: var(--bs-primary); }
+.meal-slot .meal-label { font-size: .65rem; line-height: 1; margin-left: 4px; color: #6c757d; }
+.meal-slot.busy .meal-label { color: #fff; }
+.meal-slot:hover { filter: brightness(0.95); }
+
+/* Calendar: highlight today and appointment days */
+.cal-day.today { background: #e7f1ff; border-color: #0d6efd; box-shadow: 0 0 0 2px rgba(13,110,253,.25) inset; }
+.cal-day.today .day-num { color: #0d6efd; font-weight: 700; }
+.cal-day.has-appt { border-color: var(--bs-info); box-shadow: 0 0 0 2px rgba(13,202,240,.12) inset; }
+/* Days with patient data (green highlight for routine mini calendar) */
+.cal-day.has-data { border-color: var(--bs-success); box-shadow: 0 0 0 2px rgba(25,135,84,.2) inset; }
+
+/* Popover calendar container */
+.cal-popover { min-width: 320px; }
+.cal-popover .calendar-header { margin-bottom: .25rem; }
+
+/* Habit heart toggle */
+.habit-heart-btn { border: none; background: transparent; padding: 0; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+.habit-heart-btn i { font-size: 1.1rem; color: var(--habit-color, #e03131); opacity: .5; }
+.habit-heart-btn.active i { opacity: 1; }
+
+/* Bottom capture/upload bar (Diario) */
+.bottom-bar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 3rem;
+  background: #fff;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 999px;
+  padding: .5rem .75rem;
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,.12);
+  z-index: 1080;
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+}
+.fab-btn {
+  width: 6.5rem; height: 6.5rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px;
+}
+/* Larger icons inside round buttons on mobile */
+.fab-btn i { font-size: 2.25rem; }
+@media (min-width: 992px) { .fab-btn { width: 3rem; height: 3rem; } }
+@media (min-width: 992px) { .fab-btn i { font-size: 1.25rem; } }
+
+/* Prevent content hidden by bottom bar */
+.with-bottom-pad { padding-bottom: 5.5rem; }
+
+/* Desktop small plus button */
+.bottom-plus { position: fixed; right: 1rem; bottom: 1rem; z-index: 1080; display: none; }
+@media (min-width: 992px) {
+  .bottom-bar { display: none; }
+  .bottom-plus { display: inline-flex; }
+}
+
+/* Weekly diary grid */
+.weekly-diario { width: 100%; min-width: 720px; }
+.weekly-diario th, .weekly-diario td { border: 1px solid var(--bs-border-color); padding: .5rem; vertical-align: top; }
+.weekly-diario thead th { background: var(--bs-tertiary-bg, #f1f3f5); position: sticky; top: 0; z-index: 1; }
+.weekly-diario th.is-today { background: #e7f1ff; border-bottom: 2px solid #0d6efd; }
+.weekly-diario td.is-today { background: #f0f6ff; outline: 2px solid rgba(13,110,253,.25); }
+.meal-col { width: 140px; white-space: nowrap; font-weight: 600; }
+.day-cell { min-height: 96px; }
+.slot-thumb { width: 100%; height: 72px; object-fit: cover; border-radius: .25rem; }
+.slot-empty { color: #adb5bd; font-style: italic; }
+.slot-actions { margin-top: .25rem; display: flex; gap: .25rem; }
+/* Place tiny plus at top-right within each cell */
+.day-cell { position: relative; padding-top: 1.6rem; }
+.day-cell .slot-actions { position: absolute; right: .35rem; top: .35rem; margin-top: 0; }
+.day-cell .slot-actions .btn { padding: 0 .35rem; font-size: .75rem; line-height: 1; height: 1.25rem; border-radius: .25rem; }
+/* Smaller labels so they don't clash with the plus */
+.slot-empty { font-size: .85rem; line-height: 1.1; }
+.day-cell .badge { font-size: .7rem; }
+
+/* Thumbnails in weekly routine grid */
+.thumb-square { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: .25rem; border: 1px solid var(--bs-border-color); }
+.thumb-empty { color: #adb5bd; font-size: .85rem; }
+/* Inline head (label + tiny plus) inside diary cells */
+.inline-cell-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.btn-plus-mini { padding: 0 .35rem; font-size: .75rem; line-height: 1; height: 1.25rem; border-radius: .25rem; }
