@@ -3,9 +3,9 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// 1. Iniciar la sesión y verificar el rol de superadmin
+// 1. Iniciar la sesión y verificar el rol de nutricionista
 session_start();
-if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 1) {
+if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 2) {
     header('Location: ../../index.php');
     exit;
 }
@@ -24,7 +24,17 @@ require_once '../../libs/vendor/autoload.php';
 $nombre = trim($_POST['user_name'] ?? '');
 $email = trim($_POST['user_email'] ?? '');
 $password = $_POST['user_password'] ?? ''; // Contraseña temporal
+// Asegurarnos server-side de que solo se pueda crear 'paciente'
 $role_id = filter_var($_POST['user_role_id'] ?? '', FILTER_VALIDATE_INT);
+
+// Validar que el role_id corresponde a 'paciente'
+$stmtRole = $pdo->prepare("SELECT nombre FROM roles WHERE id = ? LIMIT 1");
+$stmtRole->execute([$role_id]);
+$roleRow = $stmtRole->fetch();
+if (!$roleRow || strtolower($roleRow['nombre']) !== 'paciente') {
+    header('Location: index.php?error=rol_invalido');
+    exit;
+}
 
 if (empty($nombre) || empty($email) || empty($password) || $role_id === false) {
     header('Location: index.php?error=campos_vacios');
@@ -53,8 +63,15 @@ try {
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
     // 7. Insertar el nuevo usuario en la base de datos
-    $stmt = $pdo->prepare("INSERT INTO usuarios (nombre, email, password, role_id) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$nombre, $email, $password_hash, $role_id]);
+    // Si existe la columna 'assigned_nutricionista_id' asignamos automáticamente
+    $colCheck = $pdo->query("SHOW COLUMNS FROM usuarios LIKE 'assigned_nutricionista_id'");
+    if ($colCheck && $colCheck->rowCount() > 0) {
+        $stmt = $pdo->prepare("INSERT INTO usuarios (nombre, email, password, role_id, assigned_nutricionista_id) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$nombre, $email, $password_hash, $role_id, $_SESSION['user_id']]);
+    } else {
+        $stmt = $pdo->prepare("INSERT INTO usuarios (nombre, email, password, role_id) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$nombre, $email, $password_hash, $role_id]);
+    }
     $user_id = $pdo->lastInsertId();
 
     // 8. Generar un token para el primer cambio de contraseña

@@ -322,7 +322,7 @@ if (isset($_GET['error'])) {
     </div>
 
     <footer class="text-center text-muted py-4 mt-auto">
-        <p>&copy; 2024 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
+        <p>&copy; 2025 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
     </footer>
 
     <!-- Script de Bootstrap para que funcione el menú hamburguesa -->
