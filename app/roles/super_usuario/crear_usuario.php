@@ -57,6 +57,27 @@ try {
     $stmt->execute([$nombre, $email, $password_hash, $role_id]);
     $user_id = $pdo->lastInsertId();
 
+    // Crear registro adicional según el rol del usuario
+if ($role_id === 2) {
+    // Si es nutricionista
+    $stmtNutri = $pdo->prepare("INSERT INTO nutricionistas (id_usuario, estado) VALUES (?, 'pendiente')");
+    $stmtNutri->execute([$user_id]);
+}
+
+if ($role_id === 3) {
+    // Si es paciente, lo asociamos al primer nutricionista activo (por ejemplo)
+    $stmtNutri = $pdo->query("SELECT id FROM nutricionistas WHERE estado = 'activa' LIMIT 1");
+    $nutri = $stmtNutri->fetch();
+
+    $id_nutri = $nutri ? $nutri['id'] : null;
+
+    $stmtPaciente = $pdo->prepare("
+        INSERT INTO pacientes (id_usuario, id_nutricionista, estado) 
+        VALUES (?, ?, 'activo')
+    ");
+    $stmtPaciente->execute([$user_id, $id_nutri]);
+}
+
     // 8. Generar un token para el primer cambio de contraseña
     $token = bin2hex(random_bytes(32));
     $token_hash = hash('sha256', $token);
