@@ -74,7 +74,7 @@ if (isset($_GET['error'])) {
     </main>
 
     <footer class="login-footer">
-        <p>&copy; 2024 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
+        <p>&copy; 2025 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
     </footer>
 </body>
 </html>
