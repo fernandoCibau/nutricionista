@@ -25,6 +25,7 @@ $nombre = trim($_POST['user_name'] ?? '');
 $email = trim($_POST['user_email'] ?? '');
 $password = $_POST['user_password'] ?? ''; // Contraseña temporal
 $role_id = filter_var($_POST['user_role_id'] ?? '', FILTER_VALIDATE_INT);
+$nutricionista_id = filter_var($_POST['nutricionista_id'] ?? null, FILTER_VALIDATE_INT);
 
 if (empty($nombre) || empty($email) || empty($password) || $role_id === false) {
     header('Location: index.php?error=campos_vacios');
