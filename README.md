@@ -229,4 +229,4 @@ Este proyecto fue desarrollado con dedicación por:
 
 - **Alumnos de UTN Haedo**
 
-&copy; 2024 - Todos los derechos reservados.
+&copy; 2025 - Todos los derechos reservados.

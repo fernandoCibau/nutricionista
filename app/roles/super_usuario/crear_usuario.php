@@ -58,24 +58,26 @@ try {
     $stmt->execute([$nombre, $email, $password_hash, $role_id]);
     $user_id = $pdo->lastInsertId();
 
-    // 7.1. Insertar en la tabla de rol correspondiente (nutricionistas o pacientes)
-    if ($role_id == 2) { //  2 es el role_id para nutricionista
-        
-        $stmt = $pdo->prepare("INSERT INTO nutricionistas (usuario_id) VALUES (?)");
-        $stmt->execute([$user_id]);
-    } elseif ($role_id == 3) { // 3 es el role_id para paciente
-        if (empty($nutricionista_id)) {
-            $pdo->rollBack();
-            header('Location: index.php?error=nutricionista_requerido');
-            exit;
-        }
-        // Asumiendo que nutricionista_id es el ID de la tabla 'nutricionistas'
-        $stmt = $pdo->prepare("INSERT INTO pacientes (usuario_id, nutricionista_id) VALUES (?, ?)");
-        $stmt->execute([$user_id, $nutricionista_id]);
-    }
+    // Crear registro adicional según el rol del usuario
+if ($role_id === 2) {
+    // Si es nutricionista
+    $stmtNutri = $pdo->prepare("INSERT INTO nutricionistas (id_usuario, estado) VALUES (?, 'pendiente')");
+    $stmtNutri->execute([$user_id]);
+}
 
+if ($role_id === 3) {
+    // Si es paciente, lo asociamos al primer nutricionista activo (por ejemplo)
+    $stmtNutri = $pdo->query("SELECT id FROM nutricionistas WHERE estado = 'activa' LIMIT 1");
+    $nutri = $stmtNutri->fetch();
 
+    $id_nutri = $nutri ? $nutri['id'] : null;
 
+    $stmtPaciente = $pdo->prepare("
+        INSERT INTO pacientes (id_usuario, id_nutricionista, estado) 
+        VALUES (?, ?, 'activo')
+    ");
+    $stmtPaciente->execute([$user_id, $id_nutri]);
+}
 
     // 8. Generar un token para el primer cambio de contraseña
     $token = bin2hex(random_bytes(32));

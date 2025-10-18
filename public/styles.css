@@ -1,0 +1,288 @@
+/* 
+  Estilos para el login, inspirados en ejemplo.css 
+  Se usan colores y conceptos similares (fondos suaves, sombras, inputs altos).
+*/
+
+:root {
+    /* Colores basados en tu archivo ejemplo.css y convenciones de Bootstrap */
+    --bg-soft: #f8f9fa;
+    --bg-card: #ffffff;
+    --color-primary: #0d6efd; /* Azul estándar de Bootstrap, visto en tu CSS */
+    --color-primary-hover: #0b5ed7;
+    --color-text: #212529;
+    --color-text-muted: #6c757d; /* Tono gris de tu CSS */
+    --color-border: #dee2e6;
+    --shadow-card: 0 0.5rem 1rem rgba(0, 0, 0, .08);
+    --shadow-card-hover: 0 0.5rem 1rem rgba(0, 0, 0, .12);
+    --shadow-focus: 0 0 0 3px rgba(13, 110, 253, .25);
+    --input-height: 54px; /* Tomado de .capture-input en tu CSS */
+}
+
+/* --- Reseteo y Estilos Base --- */
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column; /* Para que el header y el main se apilen */
+    min-height: 100vh; /* Asegura que el body ocupe al menos toda la altura de la pantalla */
+    background-color: var(--bg-soft);
+    font-family: 'Inter', sans-serif; /* Una fuente moderna y legible */
+    color: var(--color-text);
+}
+
+/* --- Header --- */
+header {
+    flex-shrink: 0; /* Evita que el header se encoja */
+}
+
+/* Estilo mejorado para el enlace "Inicio" */
+.nav-link.inicio-link {
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+/* Color del logo, texto y enlaces del header */
+header.navbar-primary.bg-primary .navbar-brand,
+header.navbar-primary.bg-primary .navbar-brand strong,
+header.navbar-primary.bg-primary .nav-link,
+header.navbar-primary.bg-primary .bi,
+header.navbar-primary.bg-primary .nav-link span, /* Para el texto dentro del enlace */
+header.navbar-primary.bg-primary .nav-link.inicio-link, /* Para el enlace "Inicio" */
+header.navbar-primary.bg-primary .navbar-text { /* Para el texto del nombre de usuario */
+    color: #fff !important; /* Cambiado a blanco puro */
+}
+
+/* Estilo específico para el icono del menú hamburguesa en fondo oscuro */
+header.navbar-primary .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+/* Efecto hover para los enlaces del header */
+header.navbar-primary .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff !important;
+}
+
+/* Estilo para el botón de "Cerrar Sesión" */
+.logout-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* Espacio entre el icono y el texto */
+    padding: 0.5rem 1rem !important; /* Añadir padding para que parezca un botón */
+    border: 1px solid rgba(255, 255, 255, 0.4); /* Borde sutil */
+    border-radius: 0.5rem;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.logout-link:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important; /* Un poco más oscuro en hover */
+    border-color: #fff;
+}
+
+/* --- Contenedor Principal --- */
+.login-wrapper {
+    flex-grow: 1; /* Ocupa el espacio restante */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto; /* Permite el scroll si el contenido (ej. en móvil) es muy alto */
+    padding: 1rem;
+}
+
+/* --- Tarjeta de Login --- */
+.login-card {
+    background-color: var(--bg-card);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-card);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 420px;
+    box-sizing: border-box;
+    transition: transform .12s ease, box-shadow .12s ease; /* Efecto de tu clase .card-hover */
+}
+
+.login-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+}
+
+/* --- Formulario --- */
+.form-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    text-align: center;
+    margin: 0 0 0.5rem 0;
+}
+
+.form-subtitle {
+    text-align: center;
+    color: var(--color-text-muted);
+    margin: 0 0 2rem 0;
+}
+
+.input-group {
+    margin-bottom: 1.25rem;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-input {
+    width: 100%;
+    height: var(--input-height); /* Altura consistente con tu .capture-input */
+    padding: 0 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-focus);
+}
+
+.forgot-password {
+    display: block;
+    text-align: right;
+    font-size: 0.85rem;
+    margin-top: -0.75rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+/* Enlace para volver al login desde la página de recuperación */
+.back-to-login {
+    display: block;
+    text-align: center;
+    margin-top: 1.5rem;
+    color: var(--color-primary);
+    text-decoration: none;
+}
+.back-to-login:hover {
+    text-decoration: underline;
+}
+
+/* --- Botón Principal --- */
+.btn-primary {
+    width: 100%;
+    height: var(--input-height);
+    border: none;
+    border-radius: 0.5rem;
+    background-color: var(--color-primary);
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary-hover);
+}
+
+/* --- Mensaje de error --- */
+.error-message {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* --- Mensaje de éxito --- */
+.success-message {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* --- Footer --- */
+.login-footer {
+    flex-shrink: 0;
+    text-align: center;
+    padding: 2rem 0;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    background-color: var(--bg-soft);
+}
+
+.gallery {
+  display: inline-block;       /* mantiene todas las imágenes en una sola línea */
+  overflow-x: hidden;         /* oculta la barra de desplazamiento */
+  scroll-behavior: smooth;    /* movimiento suave */
+  width: 80%;               /* ancho visible del carrusel */
+  gap: 10px;
+  white-space: nowrap;        /* evita que haya saltos de línea */
+}
+
+.gallery-container {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   position: relative;
+}
+
+.gallery-item {
+    display: inline-block;
+    width: 300px;
+    margin-right: 15px;
+    margin-left: 15px;
+    vertical-align: top;
+    white-space: normal;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.gallery-item .description {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    height: 60px;
+    overflow: hidden;
+}
+.btn-izq, .btn-der {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.btn-izq:hover, .btn-der:hover {
+  background-color: var(--color-primary-hover);
+}
