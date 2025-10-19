@@ -1,64 +1,49 @@
 <?php
+// crear_turno.php
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 2) {
-    header('Location: ../../index.php');
-    exit;
+  http_response_code(401);
+  header('Content-Type: application/json; charset=UTF-8');
+  echo json_encode(['ok'=>false,'msg'=>'No autorizado']); exit;
+}
+require_once '../../config.php';                  // Debe definir $pdo (PDO)
+require_once '../../libs/vendor/autoload.php';
+header('Content-Type: application/json; charset=UTF-8');
+
+// Leer JSON
+$payload = json_decode(file_get_contents('php://input'), true);
+$fecha_hora  = $payload['fecha_hora'] ?? null; // 'YYYY-MM-DD HH:MM:SS' (hora local)
+$id_paciente = isset($payload['id_paciente']) ? (int)$payload['id_paciente'] : 0;
+$monto       = isset($payload['monto']) && $payload['monto'] !== '' ? (float)$payload['monto'] : null;
+
+if (!$fecha_hora || !$id_paciente) {
+  echo json_encode(['ok'=>false,'msg'=>'Datos incompletos']); exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: index.php');
-    exit;
+// Usuario -> nutricionista.id
+$stmt = $pdo->prepare("SELECT id FROM nutricionistas WHERE id_usuario = ? LIMIT 1");
+$stmt->execute([$_SESSION['user_id']]);
+$nutri = $stmt->fetch(PDO::FETCH_ASSOC);
+if (!$nutri) { echo json_encode(['ok'=>false,'msg'=>'Nutricionista no configurado']); exit; }
+$idNutri = (int)$nutri['id'];
+
+// Validar que el paciente pertenezca a este nutricionista
+$chk = $pdo->prepare("SELECT 1 FROM pacientes WHERE id = ? AND id_nutricionista = ? LIMIT 1");
+$chk->execute([$id_paciente, $idNutri]);
+if (!$chk->fetch()) {
+  echo json_encode(['ok'=>false,'msg'=>'El paciente no pertenece a tu matrícula']); exit;
 }
 
-require_once __DIR__ . '/../../config.php';
-
-$id_paciente = filter_var($_POST['id_paciente'] ?? '', FILTER_VALIDATE_INT);
-$fecha_hora = $_POST['fecha_hora'] ?? '';
-$senia = isset($_POST['senia']) ? trim($_POST['senia']) : null;
-$monto = isset($_POST['monto']) ? floatval($_POST['monto']) : null;
-
-if ($id_paciente === false || empty($fecha_hora)) {
-    header('Location: index.php?error=turno_invalido');
-    exit;
+// (Opcional) Evitar solapamientos (mismo nutri, mismo horario exacto):
+$conf = $pdo->prepare("SELECT 1 FROM turnos WHERE id_nutricionista = ? AND fecha_hora = ? LIMIT 1");
+$conf->execute([$idNutri, $fecha_hora]);
+if ($conf->fetch()) {
+  echo json_encode(['ok'=>false,'msg'=>'Ya existe un turno en ese horario']); exit;
 }
 
-try {
-    // Comprobar que el paciente exista y que pertenezca a este nutricionista
-    $stmt = $pdo->prepare("SELECT u.id, u.assigned_nutricionista_id, r.nombre as role_name FROM usuarios u JOIN roles r ON u.role_id = r.id WHERE u.id = ? LIMIT 1");
-    $stmt->execute([$id_paciente]);
-    $userRow = $stmt->fetch();
-    if (!$userRow || strtolower($userRow['role_name']) !== 'paciente') {
-        header('Location: index.php?error=paciente_no_encontrado');
-        exit;
-    }
+// Insert (estado inicial: pendiente)
+$ins = $pdo->prepare("INSERT INTO turnos (id_nutricionista, id_paciente, fecha_hora, estado, senia, pagado, creado_en, monto)
+                      VALUES (?, ?, ?, 'pendiente', 0.00, 0, NOW(), ?)");
+$ok = $ins->execute([$idNutri, $id_paciente, $fecha_hora, $monto]);
 
-    // Si existe assigned_nutricionista_id, se debe corresponder al nutricionista actual
-    $colCheck = $pdo->query("SHOW COLUMNS FROM usuarios LIKE 'assigned_nutricionista_id'");
-    if ($colCheck && $colCheck->rowCount() > 0) {
-        if ($userRow['assigned_nutricionista_id'] == null || $userRow['assigned_nutricionista_id'] != $_SESSION['user_id']) {
-            header('Location: index.php?error=no_autorizado');
-            exit;
-        }
-    } else {
-        // Si no hay columna de asignación, verificar que exista al menos un turno previo entre paciente y nutricionista
-        $stmtTurn = $pdo->prepare("SELECT 1 FROM turnos WHERE id_nutricionista = ? AND id_paciente = ? LIMIT 1");
-        $stmtTurn->execute([$_SESSION['user_id'], $id_paciente]);
-        if (!$stmtTurn->fetch()) {
-            header('Location: index.php?error=no_autorizado');
-            exit;
-        }
-    }
-
-    // Insertar el turno
-    $ins = $pdo->prepare("INSERT INTO turnos (id_nutricionista, id_paciente, fecha_hora, estado, senia, pagado, monto, creado_en) VALUES (?, ?, ?, 'programado', ?, 0, ?, NOW())");
-    $ins->execute([$_SESSION['user_id'], $id_paciente, $fecha_hora, $senia, $monto]);
-
-    header('Location: index.php?exito=turno_creado');
-    exit;
-} catch (PDOException $e) {
-    error_log('Error al crear turno: ' . $e->getMessage());
-    header('Location: index.php?error=db_error');
-    exit;
-}
-
-?>
+echo json_encode(['ok'=>$ok, 'msg'=>$ok?'Turno creado':'No se pudo crear el turno']);
