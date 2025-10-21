@@ -248,6 +248,36 @@ header.navbar-primary .nav-link:hover {
    position: relative;
 }
 
+/* --- Hero CTA buttons (inicio) --- */
+
+.hero-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: nowrap;
+  width: 100%; /* ocupa exactamente el ancho del bloque del párrafo */
+}
+
+.hero-buttons .btn.btn-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0;    /* ambos ocupan la mitad del contenedor */
+  height: 56px;   /* misma altura exacta */
+  padding: 0;     /* el alto lo define height */
+  box-sizing: border-box; /* incluye borde en el alto */
+  margin: 0;      /* sin diferencias por márgenes */
+  line-height: 1; /* evita desalineación por línea */
+  font-weight: 600; /* mismo peso en ambos botones */
+}
+
+/* Bordes consistentes para misma altura visual */
+.hero-buttons .btn-primary { border: 1px solid transparent; width: auto; }
+.hero-buttons .btn-outline-secondary { border-width: 1px; font-weight: 600; width: auto; }
+
+/* Mantenerlos lado a lado en móviles y ocupar el ancho del texto */
+
 .gallery-item {
     display: inline-block;
     width: 300px;
@@ -285,4 +315,9 @@ header.navbar-primary .nav-link:hover {
 }
 .btn-izq:hover, .btn-der:hover {
   background-color: var(--color-primary-hover);
+}
+
+/* Estilos para los botones del hero section */
+.hero-buttons .btn {
+    flex-grow: 1;
 }

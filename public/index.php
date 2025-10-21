@@ -62,12 +62,13 @@
         <div class="px-4 py-5 my-5 text-center">
             <i class="bi bi-heart-pulse display-1 text-primary"></i>
             <h1 class="display-5 fw-bold mt-3">Transforma tu gestión nutricional</h1>
-            <div class="col-lg-6 mx-auto">
-                <p class="lead mb-4">La plataforma todo-en-uno para nutricionistas y pacientes. Simplifica el seguimiento, personaliza planes y alcanza tus metas de salud de forma colaborativa y eficiente.</p>
-                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                    <a href="contactos.php" class="btn btn-primary btn-lg px-4 gap-3">Solicitar Cita</a>
-                    <a href="nosotros.php" class="btn btn-outline-secondary btn-lg px-4">Sobre Nosotros</a>
-                </div>
+           
+           
+            <section class="qubix-cta-h6">
+            <a href="contactos.php" class="orb-btn--hikari orb-btn--alpha">Solicitar Cita</a>
+            <a href="nosotros.php"  class="orb-btn--hikari orb-btn--ghost">Sobre Nosotros</a>
+            </section>
+
             </div>
         </div>
 
