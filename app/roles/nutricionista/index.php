@@ -1,17 +1,12 @@
 <?php
 // 1) Iniciar sesión y verificar rol NUTRICIONISTA (rol_id = 2)
 session_start();
-<<<<<<< HEAD
 
 // 2. Verificar si el usuario está logueado y tiene el rol correcto.
 // Si no hay sesión o el rol no es 'nutricionista', se redirige al login.
 // Corregir ruta relativa: desde app/roles/nutri/ para ir al login en app/index.php
 if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 2 && $_SESSION['user_rol'] !== 1) {
     header('Location: ../../index.php'); // Redirige a la página de login
-=======
-if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 2) {
-    header('Location: ../../index.php');
->>>>>>> 9ea935123fbbce0863798c243bb8c370d696414c
     exit;
 }
 
@@ -105,7 +100,6 @@ try {
     </header>
 
     <main class="container my-5">
-<<<<<<< HEAD
         <?php if (isset($_SESSION['user_rol']) && $_SESSION['user_rol'] === 1): ?>
         <div class="mb-4">
             <a href="../super_usuario/index.php" class="btn btn-outline-secondary">
@@ -123,9 +117,6 @@ try {
 
         <!-- Tabla de Gestión de Usuarios -->
         <div class="card shadow-sm">
-=======
-        <div class="card shadow-sm mb-4">
->>>>>>> 9ea935123fbbce0863798c243bb8c370d696414c
             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
                 <h2 class="h4 mb-0">Controles del Calendario</h2>
                 <button type="button" class="btn btn-primary" id="btnCrearTurno">

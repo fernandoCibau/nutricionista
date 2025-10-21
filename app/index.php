@@ -30,6 +30,8 @@ $exito = '';
 if (isset($_GET['exito'])) {
     if ($_GET['exito'] == 'logout') {
         $exito = 'Has cerrado sesión correctamente.';
+    } elseif ($_GET['exito'] == 'password_actualizada') {
+        $exito = '¡Contraseña actualizada con éxito! Ya puedes iniciar sesión.';
     }
 }
 ?>

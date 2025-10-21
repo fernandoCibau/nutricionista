@@ -12,11 +12,11 @@ if (isset($_GET['exito']) && $_GET['exito'] == 'enviado') {
 }
 
 if (isset($_GET['error'])) {
-    if ($_GET['error'] == 'email_no_encontrado') {
-        $mensaje = 'No se encontró ninguna cuenta con ese email.';
-        $tipo_mensaje = 'error';
-    } elseif ($_GET['error'] == 'campos_vacios') {
+    if ($_GET['error'] == 'campos_vacios') {
         $mensaje = 'Por favor, ingresa tu dirección de email.';
+        $tipo_mensaje = 'error';
+    } elseif ($_GET['error'] == 'token_expirado') {
+        $mensaje = 'El enlace de recuperación ha expirado o es inválido. Por favor, solicita uno nuevo.';
         $tipo_mensaje = 'error';
     } elseif ($_GET['error'] == 'email_error' || $_GET['error'] == 'db_error') {
         $mensaje = 'Ocurrió un problema. Por favor, intenta de nuevo más tarde.';
@@ -34,7 +34,7 @@ if (isset($_GET['error'])) {
     <!-- Dependencias de Estilos (las mismas que el login) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="assets/css/styles.css"> 
+    <link rel="stylesheet" href="../public/styles.css"> 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -44,13 +44,13 @@ if (isset($_GET['error'])) {
     <!-- Header simplificado -->
     <header class="navbar navbar-expand-lg shadow-sm navbar-primary bg-primary">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="../index.php">
+            <a class="navbar-brand d-flex align-items-center" href="../public/index.php">
                 <i class="bi bi-heart-pulse fs-4 me-2"></i>
                 <strong>NutriApp</strong>
             </a>
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link inicio-link" href="../index.php">Inicio</a>
+                    <a class="nav-link inicio-link" href="index.php">Iniciar Sesión</a>
                 </li>
             </ul>
         </div>
@@ -70,13 +70,15 @@ if (isset($_GET['error'])) {
                 <div class="success-message"><?php echo htmlspecialchars($mensaje); ?></div>
             <?php endif; ?>
 
-            <form action="procesar_recuperacion.php" method="POST">
-                <div class="input-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" class="form-input" required>
-                </div>
-                <button type="submit" class="btn-primary">Enviar Instrucciones</button>
-            </form>
+            <?php if ($tipo_mensaje !== 'success'): // Ocultar formulario si el correo ya se envió ?>
+                <form action="procesar_recuperacion.php" method="POST">
+                    <div class="input-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" class="form-input" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Enviar Instrucciones</button>
+                </form>
+            <?php endif; ?>
 
             <a href="index.php" class="back-to-login">Volver a Iniciar Sesión</a>
         </div>
