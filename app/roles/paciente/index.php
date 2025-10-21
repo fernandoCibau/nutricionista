@@ -4,7 +4,7 @@ session_start();
 
 // 2. Verificar si el usuario está logueado y tiene el rol correcto.
 // Si no hay sesión o el rol no es 'paciente', se redirige al login.
-if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 3) {
+if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 3 && $_SESSION['user_rol'] !== 1) {
     // Corregir ruta relativa: desde app/roles/paciente/ para ir al login en app/index.php
     header('Location: ../../index.php'); // Redirige a la página de login
     exit;
@@ -145,6 +145,14 @@ if (isset($_GET['error'])) {
 
     <!-- Contenido principal del dashboard -->
     <main class="container my-5">
+        <?php if (isset($_SESSION['user_rol']) && $_SESSION['user_rol'] === 1): ?>
+        <div class="mb-4">
+            <a href="../super_usuario/index.php" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left-circle me-2"></i>Volver al Panel de Super Admin
+            </a>
+        </div>
+        <?php endif; ?>
+
         <?php if ($mensaje): ?>
         <div class="alert alert-<?php echo $tipo_mensaje; ?> alert-dismissible fade show" role="alert">
             <?php echo htmlspecialchars($mensaje); ?>

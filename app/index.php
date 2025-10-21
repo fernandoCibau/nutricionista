@@ -2,6 +2,20 @@
 // Iniciar la sesión para poder manejar mensajes de error
 session_start();
 
+if (isset($_SESSION['user_id'])) {
+    // Si el usuario ya está logueado, redirigirlo a la página correspondiente según su rol
+    if ($_SESSION['user_rol'] == 1) {
+        header('Location: roles/super_usuario/index.php');
+        exit;
+    } elseif ($_SESSION['user_rol'] == 2) {
+        header('Location: roles/nutricionista/index.php');
+        exit;
+    } elseif ($_SESSION['user_rol'] == 3) {
+        header('Location: roles/paciente/index.php');
+        exit;
+    }
+}
+
 // Comprobar si hay un mensaje de error en la URL (enviado desde login.php)
 $error = '';
 if (isset($_GET['error'])) {

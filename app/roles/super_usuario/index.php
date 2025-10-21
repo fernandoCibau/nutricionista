@@ -17,17 +17,51 @@ $nombre_usuario = htmlspecialchars($_SESSION['user_nombre']);
 require_once '../../config.php';
 
 $usuarios = []; // Inicializar array de usuarios
-$roles = []; // Inicializar array de roles
+$roles = [];    // Inicializar array de roles
+$nutricionistas_list = []; // Lista de nutricionistas para el modal
+$paciente_role_id = null; // ID del rol 'paciente'
+$filtro_rol = $_GET['rol'] ?? 'todos'; // Por defecto, mostrar todos
+
 try {
-    // Consulta para obtener todos los usuarios con su rol
+    // Obtener todos los roles e identificar el ID de 'paciente'
+    $stmt_all_roles = $pdo->query("SELECT id, nombre FROM roles");
+    $all_roles = $stmt_all_roles->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($all_roles as $r) {
+        if (strtolower($r['nombre']) === 'paciente') {
+            $paciente_role_id = $r['id'];
+        }
+    }
+
+    // Obtener todos los usuarios con rol 'nutricionista' para el dropdown
+    $stmt_nutricionistas = $pdo->prepare("SELECT u.id, u.nombre FROM usuarios u JOIN roles r ON u.role_id = r.id WHERE r.nombre = 'nutricionista' ORDER BY u.nombre ASC");
+    $stmt_nutricionistas->execute();
+    $nutricionistas_list = $stmt_nutricionistas->fetchAll(PDO::FETCH_ASSOC);
+
+    // Construir la consulta para obtener usuarios, con filtro opcional por rol
     $sql_usuarios = "
         SELECT 
             u.id, u.nombre, u.email, u.creado_en, u.role_id,
             r.nombre as nombre_rol 
         FROM usuarios u
-        JOIN roles r ON u.role_id = r.id
-        ORDER BY u.nombre ASC";
-    $stmt_usuarios = $pdo->query($sql_usuarios);
+        JOIN roles r ON u.role_id = r.id";
+
+    $params = [];
+    // El filtro 'todos' no aplica una cláusula WHERE
+    if ($filtro_rol && $filtro_rol !== 'todos') {
+        // Mapear el nombre del rol a su ID
+        $stmt_rol_id = $pdo->prepare("SELECT id FROM roles WHERE nombre = ?");
+        $stmt_rol_id->execute([$filtro_rol]);
+        $rol_id_obj = $stmt_rol_id->fetch();
+        if ($rol_id_obj) {
+            $sql_usuarios .= " WHERE u.role_id = ?";
+            $params[] = $rol_id_obj['id'];
+        }
+    }
+
+    $sql_usuarios .= " ORDER BY u.nombre ASC";
+    
+    $stmt_usuarios = $pdo->prepare($sql_usuarios);
+    $stmt_usuarios->execute($params);
     $usuarios = $stmt_usuarios->fetchAll();
 
     // Consulta para obtener todos los roles (para el dropdown del modal)
@@ -74,6 +108,12 @@ if (isset($_GET['error'])) {
         $mensaje = 'Error al actualizar: Por favor, verifica que todos los campos estén completos y sean válidos.';
     } elseif ($_GET['error'] === 'password_incorrecta') {
         $mensaje = 'Error: La contraseña de administrador es incorrecta. No se eliminó el usuario.';
+    } elseif ($_GET['error'] === 'nutricionista_requerido') {
+        $mensaje = 'Error: Para crear un paciente, debes seleccionar o crear un nutricionista.';
+    } elseif ($_GET['error'] === 'campos_nutri_vacios') {
+        $mensaje = 'Error: Debes completar todos los campos para el nuevo nutricionista.';
+    } elseif ($_GET['error'] === 'email_nutri_invalido') {
+        $mensaje = 'Error: El email del nuevo nutricionista no es válido.';
     } elseif ($_GET['error'] === 'auto_eliminacion') {
         $mensaje = 'Error: No puedes eliminar tu propia cuenta de super administrador.';
     } else {
@@ -140,14 +180,53 @@ if (isset($_GET['error'])) {
         </div>
         <?php endif; ?>
 
+        <!-- Accesos Rápidos a Paneles de Rol -->
+        <div class="row mb-4 g-4">
+            <div class="col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body d-flex align-items-center p-3">
+                        <div class="flex-shrink-0 me-3"><i class="bi bi-person-badge-fill fs-2 text-info"></i></div>
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">Panel de Nutricionistas</h5>
+                            <p class="card-text text-muted small mb-2">Gestionar nutricionistas y sus pacientes.</p>
+                            <a href="../nutricionista/index.php" class="btn btn-sm btn-outline-info"><i class="bi bi-arrow-right-circle me-1"></i>Ir al Panel</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body d-flex align-items-center p-3">
+                        <div class="flex-shrink-0 me-3"><i class="bi bi-people-fill fs-2 text-secondary"></i></div>
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">Panel de Pacientes</h5>
+                            <p class="card-text text-muted small mb-2">Consultar la lista de todos los pacientes.</p>
+                            <a href="../paciente/index.php" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-right-circle me-1"></i>Ir al Panel</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Tabla de Gestión de Usuarios -->
         <div class="card shadow-sm">
-            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                <h2 class="h4 mb-0">Gestión de Usuarios</h2>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
-                    <i class="bi bi-person-plus-fill me-2"></i>
-                    Agregar Usuario
-                </button>
+            <div class="card-header bg-dark text-white">
+                <div class="d-flex flex-wrap justify-content-between align-items-center">
+                    <h2 class="h4 mb-2 mb-md-0">Gestión de Usuarios</h2>
+                    <div class="d-flex flex-wrap gap-2">
+                        <!-- Botones de Filtro -->
+                        <div class="btn-group" role="group" aria-label="Filtros de rol">
+                            <a href="index.php?rol=todos" class="btn <?php echo $filtro_rol === 'todos' ? 'btn-primary' : 'btn-outline-primary'; ?> btn-sm">Todos</a>
+                            <a href="index.php?rol=super_usuario" class="btn <?php echo $filtro_rol === 'super_usuario' ? 'btn-primary' : 'btn-outline-primary'; ?> btn-sm">Super Admins</a>
+                            <a href="index.php?rol=nutricionista" class="btn <?php echo $filtro_rol === 'nutricionista' ? 'btn-primary' : 'btn-outline-primary'; ?> btn-sm">Nutricionistas</a>
+                            <a href="index.php?rol=paciente" class="btn <?php echo $filtro_rol === 'paciente' ? 'btn-primary' : 'btn-outline-primary'; ?> btn-sm">Pacientes</a>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                            <i class="bi bi-person-plus-fill me-1"></i>
+                            Agregar Usuario
+                        </button>
+                    </div>
+                </div>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -172,7 +251,7 @@ if (isset($_GET['error'])) {
                                     <td><?php echo htmlspecialchars($usuario['nombre']); ?></td>
                                     <td>
                                         <span class="badge 
-                                            <?php echo $usuario['nombre_rol'] === 'superadmin' ? 'bg-danger' : ($usuario['nombre_rol'] === 'nutricionista' ? 'bg-info' : 'bg-secondary'); ?>">
+                                            <?php echo $usuario['nombre_rol'] === 'super_usuario' ? 'bg-danger' : ($usuario['nombre_rol'] === 'nutricionista' ? 'bg-info' : 'bg-secondary'); ?>">
                                             <?php echo htmlspecialchars(ucfirst($usuario['nombre_rol'])); ?>
                                         </span>
                                     </td>
@@ -216,35 +295,77 @@ if (isset($_GET['error'])) {
                     <h5 class="modal-title" id="addUserModalLabel">Agregar Nuevo Usuario</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="crear_usuario.php" method="POST">
+                <form id="addUserForm" action="crear_usuario.php" method="POST">
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="add-user-name" class="form-label">Nombre Completo</label>
-                            <input type="text" class="form-control" id="add-user-name" name="user_name" required>
+                        <!-- Paso 1: Selección de Rol -->
+                        <div id="addUserStep1">
+                            <p class="text-muted">Paso 1 de 2: Selecciona el tipo de usuario a crear.</p>
+                            <div class="mb-3">
+                                <!-- Campo oculto para el ID del rol paciente, se usará en JS -->
+                                <input type="hidden" id="paciente-role-id" value="<?php echo $paciente_role_id; ?>">
+                                <label for="add-user-role" class="form-label">Rol</label>
+                                <select class="form-select" id="add-user-role" name="user_role_id" required>
+                                    <option value="" selected disabled>-- Elige un rol --</option>
+                                    <?php foreach ($roles as $rol): ?>
+                                        <option value="<?php echo $rol['id']; ?>"><?php echo htmlspecialchars(ucfirst($rol['nombre'])); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="add-user-email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="add-user-email" name="user_email" required>
+                        <!-- Paso 2: Asignar Nutricionista (solo para pacientes) -->
+                        <div id="addUserStep2_Nutri" style="display: none;">
+                            <p class="text-muted">Paso 2 de 3: Asigna el paciente a un nutricionista.</p>
+                            <div class="mb-3">
+                                <label class="form-label">Nutricionistas Disponibles</label>
+                                <?php if (empty($nutricionistas_list)): ?>
+                                    <div class="alert alert-warning" role="alert">
+                                        No hay nutricionistas disponibles para asignar.
+                                    </div>
+                                <?php else: ?>
+                                    <div class="table-responsive" style="max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: .375rem;">
+                                        <table class="table table-hover mb-0">
+                                            <tbody>
+                                                <?php foreach ($nutricionistas_list as $nutri): ?>
+                                                <tr class="nutri-row" data-nutri-id="<?php echo $nutri['id']; ?>" style="cursor: pointer;">
+                                                    <td style="width: 10%;">
+                                                        <input class="form-check-input" type="radio" name="nutricionista_id" id="nutri_<?php echo $nutri['id']; ?>" value="<?php echo $nutri['id']; ?>">
+                                                    </td>
+                                                    <td>
+                                                        <label class="form-check-label w-100" for="nutri_<?php echo $nutri['id']; ?>"><?php echo htmlspecialchars($nutri['nombre']); ?></label>
+                                                    </td>
+                                                </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="add-user-password" class="form-label">Contraseña</label>
-                            <input type="password" class="form-control" id="add-user-password" name="user_password" required>
-                        </div>
 
-                        <div class="mb-3">
-                            <label for="add-user-role" class="form-label">Rol</label>
-                            <select class="form-select" id="add-user-role" name="user_role_id" required>
-                                <?php foreach ($roles as $rol): ?>
-                                    <option value="<?php echo $rol['id']; ?>"><?php echo htmlspecialchars(ucfirst($rol['nombre'])); ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                        <!-- Paso 2: Detalles del Usuario -->
+                        <div id="addUserStep3" style="display: none;">
+                            <p class="text-muted" id="step3-subtitle">Paso 2 de 2: Completa los datos del usuario.</p>
+                            <div class="mb-3">
+                                <label for="add-user-name" class="form-label">Nombre Completo</label>
+                                <input type="text" class="form-control" id="add-user-name" name="user_name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="add-user-email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="add-user-email" name="user_email">
+                            </div>
+                            <div class="mb-3">
+                                <label for="add-user-password" class="form-label">Contraseña</label>
+                                <input type="password" class="form-control" id="add-user-password" name="user_password">
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Crear Usuario</button>
+                        <button type="button" class="btn btn-secondary" id="addUserBtnPrev" style="display: none;">Anterior</button>
+                        <button type="button" class="btn btn-primary" id="addUserBtnNext">Siguiente</button>
+                        <button type="submit" class="btn btn-primary" id="addUserBtnCreate" style="display: none;">Crear Usuario</button>
                     </div>
                 </form>
             </div>
