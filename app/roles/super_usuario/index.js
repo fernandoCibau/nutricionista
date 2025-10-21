@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const viewUserModal = document.getElementById('viewUserModal');
     if (viewUserModal) {
         // Usamos una función nombrada para poder llamarla recursivamente
-        const fetchAndShowUserDetails = (userId) => {
+        const fetchAndShowUserDetails = (userId, parentId = null) => {
             const userInfoContainer = viewUserModal.querySelector('#userInfoContainer');
             const userDetailsContainer = viewUserModal.querySelector('#userDetailsContainer');
 
@@ -29,13 +29,32 @@ document.addEventListener('DOMContentLoaded', function () {
                     };
                     const statusClass = statusBadges[user.estado_nombre] || statusBadges.default;
 
-                    // Poblar información básica
-                    userInfoContainer.innerHTML = `
-                        <p><strong>Nombre:</strong> ${escapeHTML(user.nombre)}</p>
-                        <p><strong>Email:</strong> ${escapeHTML(user.email)}</p>
-                        <p><strong>Rol:</strong> <span class="badge bg-primary">${escapeHTML(user.nombre_rol)}</span></p>
-                        <p><strong>Estado:</strong> <span class="badge ${statusClass}">${escapeHTML(user.estado_nombre || 'N/A')}</span></p>
-                        <p><strong>Registrado el:</strong> ${new Date(user.creado_en).toLocaleDateString()}</p>
+                    let backButtonHTML = '';
+                    if (parentId) {
+                        backButtonHTML = `
+                            <button type="button" class="btn btn-sm btn-outline-secondary mb-3 back-btn" data-user-id="${parentId}">
+                                <i class="bi bi-arrow-left-circle"></i> Volver al Nutricionista
+                            </button>`;
+                    }
+
+                    // Poblar información básica con un diseño de tarjeta más limpio
+                    userInfoContainer.innerHTML = backButtonHTML + `
+                        <div class="card border-light">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="bi bi-person-circle fs-1 text-primary me-3"></i>
+                                    <div>
+                                        <h5 class="card-title mb-0">${escapeHTML(user.nombre)}</h5>
+                                        <p class="card-text text-muted mb-0">${escapeHTML(user.email)}</p>
+                                    </div>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">Rol: <span class="badge bg-primary rounded-pill">${escapeHTML(user.nombre_rol)}</span></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">Estado: <span class="badge ${statusClass} rounded-pill">${escapeHTML(user.estado_nombre || 'N/A')}</span></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">Miembro desde: <span class="text-muted">${new Date(user.creado_en).toLocaleDateString()}</span></li>
+                                </ul>
+                            </div>
+                        </div>
                     `;
 
                     // Poblar detalles adicionales
@@ -47,16 +66,17 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (details.pacientes && details.pacientes.length > 0) {
                             detailsHTML += `
                                 <div class="table-responsive">
-                                    <table class="table table-hover table-sm">
-                                        <thead><tr><th>Nombre</th><th>Email</th><th>Estado</th></tr></thead>
+                                    <table class="table table-sm">
+                                        <thead><tr><th>Nombre</th><th>Email</th><th>Estado</th><th class="text-center">Acción</th></tr></thead>
                                         <tbody>`;
                             details.pacientes.forEach(paciente => {
                                 const pacienteStatusClass = statusBadges[paciente.estado_nombre] || statusBadges.default;
                                 detailsHTML += `
                                     <tr class="clickable-row" data-patient-id="${paciente.id}" title="Ver detalles de ${escapeHTML(paciente.nombre)}">
                                         <td>${escapeHTML(paciente.nombre)}</td>
-                                        <td><em>${escapeHTML(paciente.email)}</em></td>
+                                        <td class="text-muted"><em>${escapeHTML(paciente.email)}</em></td>
                                         <td><span class="badge ${pacienteStatusClass}">${escapeHTML(paciente.estado_nombre)}</span></td>
+                                        <td class="text-center"><i class="bi bi-eye text-info"></i></td>
                                     </tr>`;
                             });
                             detailsHTML += '</tbody></table></div>';
@@ -80,9 +100,19 @@ document.addEventListener('DOMContentLoaded', function () {
                     userDetailsContainer.querySelectorAll('.clickable-row').forEach(row => {
                         row.addEventListener('click', function() {
                             const patientId = this.getAttribute('data-patient-id');
-                            fetchAndShowUserDetails(patientId); // Llamada recursiva para ver detalles del paciente
+                            // Llamada recursiva para ver detalles del paciente, pasando el ID del nutri actual como padre
+                            fetchAndShowUserDetails(patientId, userId); 
                         });
                     });
+
+                    // Añadir listener para el nuevo botón de "Volver"
+                    const backButton = userInfoContainer.querySelector('.back-btn');
+                    if (backButton) {
+                        backButton.addEventListener('click', function() {
+                            const parentUserId = this.getAttribute('data-user-id');
+                            fetchAndShowUserDetails(parentUserId); // Volvemos al nutri, sin `parentId`
+                        });
+                    }
                 })
                 .catch(error => {
                     userInfoContainer.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
