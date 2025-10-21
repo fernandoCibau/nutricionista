@@ -53,15 +53,20 @@ try {
     // 6. Hashear la contraseña temporal
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-    // 7. Insertar el nuevo usuario en la base de datos
-    $stmt = $pdo->prepare("INSERT INTO usuarios (nombre, email, password, role_id) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$nombre, $email, $password_hash, $role_id]);
+    // 7. Obtener el ID del estado 'pendiente' o 'activo'
+    $stmt_estado = $pdo->prepare("SELECT id FROM estados WHERE nombre = ?");
+    $stmt_estado->execute(['pendiente']);
+    $id_estado_pendiente = $stmt_estado->fetchColumn();
+
+    // 8. Insertar el nuevo usuario en la base de datos con el estado inicial
+    $stmt = $pdo->prepare("INSERT INTO usuarios (nombre, email, password, role_id, id_estado) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$nombre, $email, $password_hash, $role_id, $id_estado_pendiente]);
     $user_id = $pdo->lastInsertId();
 
     // Crear registro adicional según el rol del usuario
 if ($role_id === 2) { // Suponiendo que 2 es el ID para nutricionista
     // Si es nutricionista
-    $stmtNutri = $pdo->prepare("INSERT INTO nutricionistas (id_usuario, estado) VALUES (?, 'pendiente')");
+    $stmtNutri = $pdo->prepare("INSERT INTO nutricionistas (id_usuario) VALUES (?)");
     $stmtNutri->execute([$user_id]);
 }
 
@@ -73,13 +78,13 @@ if ($role_id === 3 && $nutricionista_id) { // Suponiendo que 3 es el ID para pac
     $id_nutri_tabla = $stmtGetNutriTableId->fetchColumn();
 
     if ($id_nutri_tabla) {
-        $stmtPaciente = $pdo->prepare("INSERT INTO pacientes (id_usuario, id_nutricionista, estado) VALUES (?, ?, 'activo')");
+        $stmtPaciente = $pdo->prepare("INSERT INTO pacientes (id_usuario, id_nutricionista) VALUES (?, ?)");
         $stmtPaciente->execute([$user_id, $id_nutri_tabla]);
     }
     // Considerar qué hacer si no se encuentra el id_nutri_tabla (ej. log de error)
 }
 
-    // 8. Generar un token para el primer cambio de contraseña del usuario principal
+    // 9. Generar un token para el primer cambio de contraseña del usuario principal
     sendWelcomeEmail($user_id, $nombre, $email, $pdo);
 
     // 11. Si todo fue exitoso, confirmar la transacción

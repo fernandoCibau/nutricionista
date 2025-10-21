@@ -20,6 +20,7 @@ $usuarios = []; // Inicializar array de usuarios
 $roles = [];    // Inicializar array de roles
 $nutricionistas_list = []; // Lista de nutricionistas para el modal
 $paciente_role_id = null; // ID del rol 'paciente'
+$estados_list = []; // Lista de estados para el modal de edición
 $filtro_rol = $_GET['rol'] ?? 'todos'; // Por defecto, mostrar todos
 
 try {
@@ -37,13 +38,19 @@ try {
     $stmt_nutricionistas->execute();
     $nutricionistas_list = $stmt_nutricionistas->fetchAll(PDO::FETCH_ASSOC);
 
+    // Obtener todos los estados para el modal de edición
+    $stmt_estados = $pdo->query("SELECT id, nombre FROM estados ORDER BY nombre ASC");
+    $estados_list = $stmt_estados->fetchAll(PDO::FETCH_ASSOC);
+
     // Construir la consulta para obtener usuarios, con filtro opcional por rol
     $sql_usuarios = "
         SELECT 
-            u.id, u.nombre, u.email, u.creado_en, u.role_id,
-            r.nombre as nombre_rol 
+            u.id, u.nombre, u.email, u.creado_en, u.role_id, u.id_estado,
+            r.nombre as nombre_rol,
+            e.nombre as estado_nombre
         FROM usuarios u
-        JOIN roles r ON u.role_id = r.id";
+        JOIN roles r ON u.role_id = r.id
+        LEFT JOIN estados e ON u.id_estado = e.id";
 
     $params = [];
     // El filtro 'todos' no aplica una cláusula WHERE
@@ -234,6 +241,7 @@ if (isset($_GET['error'])) {
                         <thead class="table-dark">
                             <tr>
                                 <th>Nombre</th>
+                                <th>Estado</th>
                                 <th>Rol</th>
                                 <th>Email</th>
                                 <th>Fecha de Registro</th>
@@ -243,12 +251,22 @@ if (isset($_GET['error'])) {
                         <tbody>
                             <?php if (empty($usuarios)): ?>
                                 <tr>
-                                    <td colspan="5" class="text-center">No se encontraron usuarios.</td>
+                                    <td colspan="6" class="text-center">No se encontraron usuarios.</td>
                                 </tr>
                             <?php endif; ?>
                             <?php foreach ($usuarios as $usuario): ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($usuario['nombre']); ?></td>
+                                    <td>
+                                        <?php 
+                                            $estado = $usuario['estado_nombre'] ?? 'N/A';
+                                            $badge_class = 'bg-secondary';
+                                            if ($estado === 'activo') $badge_class = 'bg-success';
+                                            if ($estado === 'pendiente') $badge_class = 'bg-warning text-dark';
+                                            if ($estado === 'baja' || $estado === 'inactivo') $badge_class = 'bg-danger';
+                                        ?>
+                                        <span class="badge <?php echo $badge_class; ?>"><?php echo htmlspecialchars(ucfirst($estado)); ?></span>
+                                    </td>
                                     <td>
                                         <span class="badge 
                                             <?php echo $usuario['nombre_rol'] === 'super_usuario' ? 'bg-danger' : ($usuario['nombre_rol'] === 'nutricionista' ? 'bg-info' : 'bg-secondary'); ?>">
@@ -260,6 +278,14 @@ if (isset($_GET['error'])) {
                                     <td class="text-center">
                                         <!-- Ocultar botones para el propio superadmin para evitar auto-eliminación -->
                                         <?php if ($_SESSION['user_id'] !== $usuario['id']): ?>
+                                        <button type="button" class="btn btn-sm btn-info me-2 view-btn"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#viewUserModal"
+                                                data-user-id="<?php echo $usuario['id']; ?>"
+                                                data-user-role-name="<?php echo htmlspecialchars($usuario['nombre_rol']); ?>"
+                                                title="Ver Detalles">
+                                            <i class="bi bi-eye-fill"></i>
+                                        </button>
                                         <button type="button" class="btn btn-sm btn-warning me-2 edit-btn" 
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#editUserModal"
@@ -267,6 +293,7 @@ if (isset($_GET['error'])) {
                                                 data-user-name="<?php echo htmlspecialchars($usuario['nombre']); ?>"
                                                 data-user-email="<?php echo htmlspecialchars($usuario['email']); ?>"
                                                 data-user-role-id="<?php echo $usuario['role_id']; ?>"
+                                                data-user-status-id="<?php echo htmlspecialchars($usuario['id_estado'] ?? ''); ?>"
                                                 title="Editar">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
@@ -403,6 +430,17 @@ if (isset($_GET['error'])) {
                                 <?php endforeach; ?>
                             </select>
                         </div>
+
+                        <!-- Campo de Estado (solo visible si el rol es paciente o nutricionista) -->
+                        <div class="mb-3" id="edit-status-container" style="display: none;">
+                            <label for="edit-user-status-id" class="form-label">Estado</label>
+                            <select class="form-select" id="edit-user-status-id" name="user_status_id">
+                                <option value="">-- Sin Cambiar --</option>
+                                <?php foreach ($estados_list as $estado_item): ?>
+                                    <option value="<?php echo $estado_item['id']; ?>"><?php echo htmlspecialchars(ucfirst($estado_item['nombre'])); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -442,12 +480,41 @@ if (isset($_GET['error'])) {
         </div>
     </div>
 
+    <!-- Modal para Ver Detalles de Usuario -->
+    <div class="modal fade" id="viewUserModal" tabindex="-1" aria-labelledby="viewUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewUserModalLabel">Detalles del Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="userInfoContainer">
+                        <!-- La información básica del usuario se cargará aquí -->
+                    </div>
+                    <hr>
+                    <div id="userDetailsContainer">
+                        <!-- Los detalles adicionales (pacientes/nutri) se cargarán aquí -->
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="text-center text-muted py-4 mt-auto">
         <p>&copy; 2025 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
     </footer>
 
     <!-- Script de Bootstrap para que funcione el menú hamburguesa -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="index.js"></script>
+    <script src="index.js"></script> <!-- Asegúrate que este archivo exista -->
 </body>
 </html>
