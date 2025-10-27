@@ -220,6 +220,15 @@ CREATE TABLE IF NOT EXISTS dias_no_laborales (
   creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 ```
+-- Completados de hábitos (registro diario de cumplimiento por paciente)
+CREATE TABLE IF NOT EXISTS habit_completados (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_habito INT NOT NULL,
+  id_paciente INT NOT NULL,
+  fecha DATE NOT NULL,
+  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_hab_fecha (id_habito, id_paciente, fecha)
+);
 
 ---
 

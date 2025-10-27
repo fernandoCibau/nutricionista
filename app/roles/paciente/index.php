@@ -26,14 +26,44 @@ try {
     error_log("Error al obtener comidas (diario): " . $e->getMessage());
 }
 
-// Obtener próximo turno programado
-$proximo_turno = null;
+// Obtener próximos turnos programados (todos los futuros)
+$turnos_programados = [];
 try {
-    $stmt = $pdo->prepare("SELECT id, id_nutricionista, id_paciente, fecha_hora, estado, senia, pagado, creado_en FROM turnos WHERE id_paciente = ? AND fecha_hora > NOW() AND estado = 'programado' ORDER BY fecha_hora ASC LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id, id_nutricionista, id_paciente, fecha_hora, estado, senia, pagado, monto, creado_en FROM turnos WHERE id_paciente = ? AND fecha_hora > NOW() AND estado = 'programado' ORDER BY fecha_hora ASC");
     $stmt->execute([$_SESSION['user_id']]);
-    $proximo_turno = $stmt->fetch();
+    $turnos_programados = $stmt->fetchAll();
 } catch (PDOException $e) {
-    error_log("Error al obtener turno: " . $e->getMessage());
+    error_log("Error al obtener turnos: " . $e->getMessage());
+}
+
+// Cargar hábitos asignados (si existe la tabla)
+$habitos = [];
+try {
+    $check = $pdo->query("SHOW TABLES LIKE 'habitos'");
+    if ($check && $check->rowCount() > 0) {
+        $hstmt = $pdo->prepare("SELECT id, descripcion, creado_en FROM habitos WHERE id_paciente = ? ORDER BY creado_en DESC");
+        $hstmt->execute([$_SESSION['user_id']]);
+        $habitos = $hstmt->fetchAll();
+    }
+} catch (PDOException $e) {
+    error_log("Error al obtener hábitos: " . $e->getMessage());
+}
+
+// Obtener completados hoy (si existe la tabla)
+$completados_hoy = [];
+try {
+    $check2 = $pdo->query("SHOW TABLES LIKE 'habit_completados'");
+    if ($check2 && $check2->rowCount() > 0) {
+        $hoy = date('Y-m-d');
+        $cstmt = $pdo->prepare("SELECT id_habito FROM habit_completados WHERE id_paciente = ? AND fecha = ?");
+        $cstmt->execute([$_SESSION['user_id'], $hoy]);
+        $rows = $cstmt->fetchAll();
+        foreach ($rows as $r) {
+            $completados_hoy[$r['id_habito']] = true;
+        }
+    }
+} catch (PDOException $e) {
+    error_log("Error al obtener completados de hábitos: " . $e->getMessage());
 }
 
 // Obtener la receta/dieta más reciente (tabla `recetas`) — las recetas están asociadas a nutricionistas,
@@ -46,6 +76,19 @@ try {
     $dieta = $stmt->fetch();
 } catch (PDOException $e) {
     error_log("Error al obtener receta (recetas): " . $e->getMessage());
+}
+
+// Obtener el estado del paciente (activo / alta) para bloquear edición de historia si corresponde
+$paciente_estado = null;
+try {
+    $pstmt = $pdo->prepare("SELECT estado FROM pacientes WHERE id_usuario = ? LIMIT 1");
+    $pstmt->execute([$_SESSION['user_id']]);
+    $prow = $pstmt->fetch();
+    if ($prow) {
+        $paciente_estado = $prow['estado'];
+    }
+} catch (PDOException $e) {
+    error_log("Error al obtener estado del paciente: " . $e->getMessage());
 }
 
 // Manejo de mensajes de éxito y error desde la URL
@@ -145,6 +188,11 @@ if (isset($_GET['error'])) {
 
     <!-- Contenido principal del dashboard -->
     <main class="container my-5">
+        <?php if ($paciente_estado === 'alta'): ?>
+            <div class="alert alert-warning" role="alert">
+                Tu historia clínica está en estado <strong>ALTA</strong> y no puede ser editada desde tu cuenta. Si necesitás cambios, contactá a tu nutricionista o al administrador.
+            </div>
+        <?php endif; ?>
         <?php if (isset($_SESSION['user_rol']) && $_SESSION['user_rol'] === 1): ?>
         <div class="mb-4">
             <a href="../super_usuario/index.php" class="btn btn-outline-secondary">
@@ -199,24 +247,29 @@ if (isset($_GET['error'])) {
             <div class="col-md-6">
                 <div class="card shadow-sm">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h3 class="h5 mb-0">Próximo Turno</h3>
+                        <h3 class="h5 mb-0">Turnos Programados</h3>
                     </div>
                     <div class="card-body">
-                        <?php if ($proximo_turno): ?>
-                            <p><strong>Fecha:</strong> <?php echo date('d/m/Y H:i', strtotime($proximo_turno['fecha_hora'])); ?></p>
-                            <div class="mb-2">
-                                <strong>Seña:</strong> <?php echo htmlspecialchars($proximo_turno['senia'] ?? 'N/A'); ?>
-                            </div>
-                            <div class="mb-3">
-                                <strong>Pagado:</strong> <?php echo !empty($proximo_turno['pagado']) ? 'Sí' : 'No'; ?>
-                            </div>
-                            <form action="cancelar_turno.php" method="POST" onsubmit="return confirm('¿Seguro que deseas cancelar este turno?');">
-                                <input type="hidden" name="fecha_hora" value="<?php echo htmlspecialchars($proximo_turno['fecha_hora']); ?>">
-                                <input type="hidden" name="id_nutricionista" value="<?php echo htmlspecialchars($proximo_turno['id_nutricionista']); ?>">
-                                <button class="btn btn-danger">Cancelar Turno</button>
-                            </form>
+                        <?php if (!empty($turnos_programados)): ?>
+                            <ul class="list-group list-group-flush">
+                                <?php foreach ($turnos_programados as $t): ?>
+                                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <div><strong>Fecha:</strong> <?php echo date('d/m/Y H:i', strtotime($t['fecha_hora'])); ?></div>
+                                            <div class="small text-muted">Seña: <?php echo htmlspecialchars($t['senia'] ?? 'N/A'); ?> • Pagado: <?php echo !empty($t['pagado']) ? 'Sí' : 'No'; ?></div>
+                                        </div>
+                                        <div class="text-end">
+                                            <form action="cancelar_turno.php" method="POST" onsubmit="return confirm('¿Seguro que deseas cancelar este turno?');" style="display:inline">
+                                                <input type="hidden" name="fecha_hora" value="<?php echo htmlspecialchars($t['fecha_hora']); ?>">
+                                                <input type="hidden" name="id_nutricionista" value="<?php echo htmlspecialchars($t['id_nutricionista']); ?>">
+                                                <button class="btn btn-sm btn-danger">Cancelar</button>
+                                            </form>
+                                        </div>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
                         <?php else: ?>
-                            <p class="text-muted">No tienes turnos programados.</p>
+                            <p class="text-muted">Tiempo de agendar una nueva consulta.</p>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -231,6 +284,40 @@ if (isset($_GET['error'])) {
                             <a href="descargar_dieta.php?titulo=<?php echo urlencode($dieta['titulo']); ?>&creado_en=<?php echo urlencode($dieta['creado_en']); ?>" class="btn btn-outline-primary">Descargar Dieta</a>
                         <?php else: ?>
                             <p class="text-muted">Aún no hay recetas públicas disponibles.</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                
+                <!-- Hábitos asignados -->
+                <div class="card shadow-sm mt-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="h6 mb-0">Mis Hábitos</h3>
+                        <small class="text-muted">Marca tu progreso</small>
+                    </div>
+                    <div class="card-body">
+                        <?php if (empty($habitos)): ?>
+                            <p class="text-muted">No tienes hábitos asignados. Contactá a tu nutricionista.</p>
+                        <?php else: ?>
+                            <div class="list-group">
+                                <?php foreach ($habitos as $hab): ?>
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div><?php echo nl2br(htmlspecialchars($hab['descripcion'])); ?></div>
+                                            <div class="small text-muted">Asignado: <?php echo date('d/m/Y', strtotime($hab['creado_en'])); ?></div>
+                                        </div>
+                                        <div class="text-end">
+                                            <form action="marcar_habito.php" method="POST" class="d-flex gap-2 align-items-center">
+                                                <input type="hidden" name="id_habito" value="<?php echo $hab['id']; ?>">
+                                                <input type="date" name="fecha" value="<?php echo date('Y-m-d'); ?>" class="form-control form-control-sm">
+                                                <?php $done = !empty($completados_hoy[$hab['id']]); ?>
+                                                <button class="btn btn-sm <?php echo $done ? 'btn-outline-danger' : 'btn-success'; ?>">
+                                                    <?php echo $done ? 'Desmarcar' : 'Marcar cumplido'; ?>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -274,6 +361,7 @@ if (isset($_GET['error'])) {
     </main>
 
     <!-- Modal para Agregar Usuario -->
+    <?php if ($paciente_estado !== 'alta'): // Ocultar modales de gestión de usuarios si el paciente está de alta ?>
     <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -314,6 +402,7 @@ if (isset($_GET['error'])) {
                 </form>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Modal para Editar Usuario -->
@@ -356,6 +445,7 @@ if (isset($_GET['error'])) {
             </div>
         </div>
     </div>
+    </div>
 
     <!-- Modal para Confirmar Eliminación -->
     <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
@@ -385,6 +475,7 @@ if (isset($_GET['error'])) {
             </div>
         </div>
     </div>
+    <?php endif; ?>
 
     <footer class="text-center text-muted py-4 mt-auto">
         <p>&copy; 2025 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
