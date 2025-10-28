@@ -16,12 +16,31 @@ $nombre_usuario = htmlspecialchars($_SESSION['user_nombre']);
 // Incluir el archivo de configuración para la conexión a la BD
 require_once '../../config.php';
 
+// Obtener id interno y estado del paciente (tabla `pacientes`) para usar en las queries
+$paciente_id = null;
+$paciente_estado = null; // value will be populated later again for compatibility
+try {
+    $pstmt = $pdo->prepare("SELECT id, estado FROM pacientes WHERE id_usuario = ? LIMIT 1");
+    $pstmt->execute([$_SESSION['user_id']]);
+    $prow = $pstmt->fetch();
+    if ($prow) {
+        $paciente_id = $prow['id'];
+        $paciente_estado = $prow['estado'];
+    } else {
+        error_log('Paciente no encontrado para user_id=' . $_SESSION['user_id']);
+    }
+} catch (PDOException $e) {
+    error_log("Error al obtener paciente: " . $e->getMessage());
+}
+
 // Cargar las comidas recientes del paciente (tabla `diario`)
 $comidas = [];
 try {
-    $stmt = $pdo->prepare("SELECT id, id_paciente, fecha_hora, tipo_comida, detalles, url_foto FROM diario WHERE id_paciente = ? ORDER BY fecha_hora DESC LIMIT 10");
-    $stmt->execute([$_SESSION['user_id']]);
-    $comidas = $stmt->fetchAll();
+    if ($paciente_id !== null) {
+        $stmt = $pdo->prepare("SELECT id, id_paciente, fecha_hora, tipo_comida, detalles, url_foto FROM diario WHERE id_paciente = ? ORDER BY fecha_hora DESC LIMIT 10");
+        $stmt->execute([$paciente_id]);
+        $comidas = $stmt->fetchAll();
+    }
 } catch (PDOException $e) {
     error_log("Error al obtener comidas (diario): " . $e->getMessage());
 }
@@ -29,9 +48,11 @@ try {
 // Obtener próximos turnos programados (todos los futuros)
 $turnos_programados = [];
 try {
-    $stmt = $pdo->prepare("SELECT id, id_nutricionista, id_paciente, fecha_hora, estado, senia, pagado, monto, creado_en FROM turnos WHERE id_paciente = ? AND fecha_hora > NOW() AND estado = 'programado' ORDER BY fecha_hora ASC");
-    $stmt->execute([$_SESSION['user_id']]);
-    $turnos_programados = $stmt->fetchAll();
+    if ($paciente_id !== null) {
+        $stmt = $pdo->prepare("SELECT id, id_nutricionista, id_paciente, fecha_hora, estado, senia, pagado, monto, creado_en FROM turnos WHERE id_paciente = ? AND fecha_hora > NOW() AND estado IN ('pendiente','confirmado','programado') ORDER BY fecha_hora ASC");
+        $stmt->execute([$paciente_id]);
+        $turnos_programados = $stmt->fetchAll();
+    }
 } catch (PDOException $e) {
     error_log("Error al obtener turnos: " . $e->getMessage());
 }
@@ -40,9 +61,9 @@ try {
 $habitos = [];
 try {
     $check = $pdo->query("SHOW TABLES LIKE 'habitos'");
-    if ($check && $check->rowCount() > 0) {
+    if ($check && $check->rowCount() > 0 && $paciente_id !== null) {
         $hstmt = $pdo->prepare("SELECT id, descripcion, creado_en FROM habitos WHERE id_paciente = ? ORDER BY creado_en DESC");
-        $hstmt->execute([$_SESSION['user_id']]);
+        $hstmt->execute([$paciente_id]);
         $habitos = $hstmt->fetchAll();
     }
 } catch (PDOException $e) {
@@ -53,10 +74,10 @@ try {
 $completados_hoy = [];
 try {
     $check2 = $pdo->query("SHOW TABLES LIKE 'habit_completados'");
-    if ($check2 && $check2->rowCount() > 0) {
+    if ($check2 && $check2->rowCount() > 0 && $paciente_id !== null) {
         $hoy = date('Y-m-d');
         $cstmt = $pdo->prepare("SELECT id_habito FROM habit_completados WHERE id_paciente = ? AND fecha = ?");
-        $cstmt->execute([$_SESSION['user_id'], $hoy]);
+        $cstmt->execute([$paciente_id, $hoy]);
         $rows = $cstmt->fetchAll();
         foreach ($rows as $r) {
             $completados_hoy[$r['id_habito']] = true;
@@ -78,18 +99,7 @@ try {
     error_log("Error al obtener receta (recetas): " . $e->getMessage());
 }
 
-// Obtener el estado del paciente (activo / alta) para bloquear edición de historia si corresponde
-$paciente_estado = null;
-try {
-    $pstmt = $pdo->prepare("SELECT estado FROM pacientes WHERE id_usuario = ? LIMIT 1");
-    $pstmt->execute([$_SESSION['user_id']]);
-    $prow = $pstmt->fetch();
-    if ($prow) {
-        $paciente_estado = $prow['estado'];
-    }
-} catch (PDOException $e) {
-    error_log("Error al obtener estado del paciente: " . $e->getMessage());
-}
+// (estado del paciente ya se obtuvo más arriba en la variable $paciente_estado)
 
 // Manejo de mensajes de éxito y error desde la URL
 $mensaje = '';
@@ -264,12 +274,40 @@ if (isset($_GET['error'])) {
                                                 <input type="hidden" name="id_nutricionista" value="<?php echo htmlspecialchars($t['id_nutricionista']); ?>">
                                                 <button class="btn btn-sm btn-danger">Cancelar</button>
                                             </form>
+                                            <!-- Reprogramar: mostrar formulario pequeño -->
+                                            <button class="btn btn-sm btn-secondary ms-2" type="button" onclick="document.getElementById('reprog-<?php echo $t['id']; ?>').classList.toggle('d-none')">Reprogramar</button>
+                                            <div id="reprog-<?php echo $t['id']; ?>" class="mt-2 d-none">
+                                                <form action="reprogramar_turno.php" method="POST" class="d-flex gap-2 align-items-center">
+                                                    <input type="hidden" name="turno_id" value="<?php echo $t['id']; ?>">
+                                                    <input type="datetime-local" name="nueva_fecha" class="form-control form-control-sm" required>
+                                                    <button class="btn btn-sm btn-primary">Enviar</button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </li>
                                 <?php endforeach; ?>
                             </ul>
                         <?php else: ?>
                             <p class="text-muted">Tiempo de agendar una nueva consulta.</p>
+                            <!-- Botón para solicitar turno al nutricionista -->
+                            <div class="mt-3">
+                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#solicitarTurno" aria-expanded="false" aria-controls="solicitarTurno">Solicitar turno a mi nutricionista</button>
+                                <div class="collapse mt-3" id="solicitarTurno">
+                                    <div class="card card-body">
+                                        <form action="enviar_notificacion_nutricionista.php" method="POST">
+                                            <div class="mb-3">
+                                                <label for="preferencia_fecha" class="form-label">Fecha/horario preferido (opcional)</label>
+                                                <input type="datetime-local" id="preferencia_fecha" name="preferencia_fecha" class="form-control">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="mensaje_solicitud" class="form-label">Mensaje (opcional)</label>
+                                                <textarea id="mensaje_solicitud" name="mensaje" class="form-control" rows="3">Hola, me gustaría coordinar un turno.</textarea>
+                                            </div>
+                                            <button class="btn btn-primary">Enviar solicitud</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>

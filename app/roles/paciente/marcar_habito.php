@@ -25,7 +25,22 @@ try {
     $stmt = $pdo->prepare("SELECT id_paciente FROM habitos WHERE id = ? LIMIT 1");
     $stmt->execute([$id_habito]);
     $h = $stmt->fetch();
-    if (!$h || $h['id_paciente'] != $_SESSION['user_id']) {
+    if (!$h) {
+        header('Location: index.php?error=no_autorizado');
+        exit;
+    }
+
+    // Obtener paciente_id real desde la tabla pacientes
+    $pstmt = $pdo->prepare("SELECT id FROM pacientes WHERE id_usuario = ? LIMIT 1");
+    $pstmt->execute([$_SESSION['user_id']]);
+    $ppr = $pstmt->fetch();
+    if (!$ppr) {
+        header('Location: index.php?error=paciente_no_encontrado');
+        exit;
+    }
+    $paciente_id = $ppr['id'];
+
+    if ($h['id_paciente'] != $paciente_id) {
         header('Location: index.php?error=no_autorizado');
         exit;
     }
@@ -42,7 +57,7 @@ try {
 
     // Verificar si ya existe un registro para ese dia (toggle)
     $cstmt = $pdo->prepare("SELECT id FROM habit_completados WHERE id_habito = ? AND id_paciente = ? AND fecha = ? LIMIT 1");
-    $cstmt->execute([$id_habito, $_SESSION['user_id'], $fecha]);
+    $cstmt->execute([$id_habito, $paciente_id, $fecha]);
     $exists = $cstmt->fetch();
     if ($exists) {
         // Desmarcar
@@ -53,7 +68,7 @@ try {
     } else {
         // Insertar como completado
         $ins = $pdo->prepare("INSERT INTO habit_completados (id_habito, id_paciente, fecha) VALUES (?, ?, ?)");
-        $ins->execute([$id_habito, $_SESSION['user_id'], $fecha]);
+        $ins->execute([$id_habito, $paciente_id, $fecha]);
         header('Location: index.php?exito=habito_marcado');
         exit;
     }

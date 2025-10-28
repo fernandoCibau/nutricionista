@@ -22,8 +22,18 @@ if (empty($fecha_hora) || $id_nutricionista === false) {
 
 try {
     // Verificar que el turno con esa fecha y nutricionista pertenezca al paciente y esté programado
+    // Obtener paciente_id real desde la tabla pacientes
+    $pstmt = $pdo->prepare("SELECT id FROM pacientes WHERE id_usuario = ? LIMIT 1");
+    $pstmt->execute([$_SESSION['user_id']]);
+    $ppr = $pstmt->fetch();
+    if (!$ppr) {
+        header('Location: index.php?error=paciente_no_encontrado');
+        exit;
+    }
+    $paciente_id = $ppr['id'];
+
     $stmt = $pdo->prepare("SELECT id_nutricionista, id_paciente, fecha_hora, estado FROM turnos WHERE id_nutricionista = ? AND id_paciente = ? AND fecha_hora = ? LIMIT 1");
-    $stmt->execute([$id_nutricionista, $_SESSION['user_id'], $fecha_hora]);
+    $stmt->execute([$id_nutricionista, $paciente_id, $fecha_hora]);
     $found = $stmt->fetch();
     if (!$found || $found['estado'] !== 'programado') {
         header('Location: index.php?error=turno_no_encontrado');
@@ -31,7 +41,7 @@ try {
     }
 
     $upd = $pdo->prepare("UPDATE turnos SET estado = 'cancelado' WHERE id_nutricionista = ? AND id_paciente = ? AND fecha_hora = ?");
-    $upd->execute([$id_nutricionista, $_SESSION['user_id'], $fecha_hora]);
+    $upd->execute([$id_nutricionista, $paciente_id, $fecha_hora]);
     header('Location: index.php?exito=turno_cancelado');
     exit;
 } catch (PDOException $e) {

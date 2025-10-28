@@ -15,6 +15,25 @@ require_once __DIR__ . '/../../config.php';
 $comentario = trim($_POST['comentario'] ?? '');
 $tipo_comida = $_POST['tipo_comida'] ?? '';
 
+// Obtener el id interno del paciente (tabla pacientes) a partir del usuario logueado
+$paciente_id = null;
+try {
+    $pstmt = $pdo->prepare("SELECT id FROM pacientes WHERE id_usuario = ? LIMIT 1");
+    $pstmt->execute([$_SESSION['user_id']]);
+    $prow = $pstmt->fetch();
+    if ($prow) {
+        $paciente_id = $prow['id'];
+    } else {
+        error_log('Paciente no encontrado para user_id=' . $_SESSION['user_id']);
+        header('Location: index.php?error=paciente_no_encontrado');
+        exit;
+    }
+} catch (PDOException $e) {
+    error_log('Error al buscar paciente en subir_comida.php: ' . $e->getMessage());
+    header('Location: index.php?error=db_error');
+    exit;
+}
+
 $allowed = ['desayuno','almuerzo','merienda','cena'];
 if (!in_array($tipo_comida, $allowed, true)) {
     header('Location: index.php?error=tipo_invalido');
@@ -57,6 +76,7 @@ $relativePath = 'public/uploads/comidas/' . uniqid('comida_') . $ext; // ruta re
 $fullpath = __DIR__ . '/../../' . $relativePath;
 
 if (!move_uploaded_file($file['tmp_name'], $fullpath)) {
+    error_log('move_uploaded_file falló para user_id=' . $_SESSION['user_id'] . ' destino=' . $fullpath);
     header('Location: index.php?error=guardar_foto');
     exit;
 }
@@ -64,11 +84,11 @@ if (!move_uploaded_file($file['tmp_name'], $fullpath)) {
 try {
     // Insertar en la tabla `diario` (id_paciente, fecha_hora, tipo_comida, detalles, url_foto)
     $stmt = $pdo->prepare("INSERT INTO diario (id_paciente, fecha_hora, tipo_comida, detalles, url_foto) VALUES (?, NOW(), ?, ?, ?)");
-    $stmt->execute([$_SESSION['user_id'], $tipo_comida, $comentario, '/' . $relativePath]);
+    $stmt->execute([$paciente_id, $tipo_comida, $comentario, '/' . $relativePath]);
     header('Location: index.php?exito=comida_subida');
     exit;
 } catch (PDOException $e) {
-    error_log("Error al guardar diario: " . $e->getMessage());
+    error_log("Error al guardar diario (subir_comida.php): " . $e->getMessage());
     header('Location: index.php?error=db_error');
     exit;
 }
