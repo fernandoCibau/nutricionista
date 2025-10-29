@@ -219,7 +219,7 @@ try {
             },
             events: 'obtener_turnos.php',
             locale: 'es',
-            buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'DÃ­a' },
+            buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Dí­a' },
             slotMinTime: '07:00:00',
             slotMaxTime: '22:00:00',
             selectable: true,

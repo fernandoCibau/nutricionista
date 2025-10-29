@@ -43,21 +43,28 @@ try {
     $estados_list = $stmt_estados->fetchAll(PDO::FETCH_ASSOC);
 
     // Construir la consulta para obtener usuarios, con filtro opcional por rol
+    // Agregamos, para pacientes, el nombre de su nutricionista (si existe)
     $sql_usuarios = "
         SELECT 
             u.id, u.nombre, u.email, u.creado_en, u.role_id, u.id_estado,
-            r.nombre as nombre_rol,
-            e.nombre as estado_nombre
+            r.nombre AS nombre_rol,
+            e.nombre AS estado_nombre,
+            un.nombre AS nutricionista_nombre
         FROM usuarios u
         JOIN roles r ON u.role_id = r.id
-        LEFT JOIN estados e ON u.id_estado = e.id";
+        LEFT JOIN estados e ON u.id_estado = e.id
+        LEFT JOIN pacientes p ON p.id_usuario = u.id
+        LEFT JOIN nutricionistas n ON n.id = p.id_nutricionista
+        LEFT JOIN usuarios un ON un.id = n.id_usuario";
 
     $params = [];
     // El filtro 'todos' no aplica una cláusula WHERE
     if ($filtro_rol && $filtro_rol !== 'todos') {
+        // Mapear nombre de filtro a nombre de rol real en BD
+        $rol_buscar = $filtro_rol === 'super_usuario' ? 'superadmin' : $filtro_rol;
         // Mapear el nombre del rol a su ID
         $stmt_rol_id = $pdo->prepare("SELECT id FROM roles WHERE nombre = ?");
-        $stmt_rol_id->execute([$filtro_rol]);
+        $stmt_rol_id->execute([$rol_buscar]);
         $rol_id_obj = $stmt_rol_id->fetch();
         if ($rol_id_obj) {
             $sql_usuarios .= " WHERE u.role_id = ?";
@@ -254,6 +261,7 @@ if (isset($_GET['error'])) {
                                 <th>Nombre</th>
                                 <th>Estado</th>
                                 <th>Rol</th>
+                                <th>Nutricionista</th>
                                 <th>Email</th>
                                 <th>Fecha de Registro</th>
                                 <th class="text-center">Acciones</th>
@@ -262,7 +270,7 @@ if (isset($_GET['error'])) {
                         <tbody>
                             <?php if (empty($usuarios)): ?>
                                 <tr>
-                                    <td colspan="6" class="text-center">No se encontraron usuarios.</td>
+                                    <td colspan="7" class="text-center">No se encontraron usuarios.</td>
                                 </tr>
                             <?php endif; ?>
                             <?php foreach ($usuarios as $usuario): ?>
@@ -280,9 +288,16 @@ if (isset($_GET['error'])) {
                                     </td>
                                     <td>
                                         <span class="badge 
-                                            <?php echo $usuario['nombre_rol'] === 'super_usuario' ? 'bg-danger' : ($usuario['nombre_rol'] === 'nutricionista' ? 'bg-info' : 'bg-secondary'); ?>">
+                                            <?php echo $usuario['nombre_rol'] === 'superadmin' ? 'bg-danger' : ($usuario['nombre_rol'] === 'nutricionista' ? 'bg-info' : 'bg-secondary'); ?>">
                                             <?php echo htmlspecialchars(ucfirst($usuario['nombre_rol'])); ?>
                                         </span>
+                                    </td>
+                                    <td>
+                                        <?php if (strtolower($usuario['nombre_rol']) === 'paciente'): ?>
+                                            <?php echo htmlspecialchars($usuario['nutricionista_nombre'] ?? '-'); ?>
+                                        <?php else: ?>
+                                            -
+                                        <?php endif; ?>
                                     </td>
                                     <td><?php echo htmlspecialchars($usuario['email']); ?></td>
                                     <td><?php echo date('d/m/Y', strtotime($usuario['creado_en'])); ?></td>
