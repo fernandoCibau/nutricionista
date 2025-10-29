@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // crear_paciente.php
 session_start();
 require_once '../../config.php';
@@ -30,18 +30,18 @@ try {
     $idNutricionista = $stmtNutri->fetchColumn();
 
     if (!$idNutricionista) {
-        echo json_encode(['success' => false, 'message' => 'Tu cuenta de nutricionista no está activa.']);
+        echo json_encode(['success' => false, 'message' => 'Tu cuenta de nutricionista no estÃ¡ activa.']);
         exit;
     }
 
     $pdo->beginTransaction();
 
-    // email único
+    // email Ãºnico
     $st = $pdo->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
     $st->execute([$email]);
     if ($st->fetch()) {
         $pdo->rollBack();
-        echo json_encode(['success' => false, 'message' => 'El email ya está registrado.']);
+        echo json_encode(['success' => false, 'message' => 'El email ya estÃ¡ registrado.']);
         exit;
     }
 
@@ -49,14 +49,14 @@ try {
     $passwordTemp = bin2hex(random_bytes(4)); // 8 caracteres hex
     $passwordHash = password_hash($passwordTemp, PASSWORD_BCRYPT);
 
-    $insUser = $pdo->prepare("INSERT INTO usuarios (nombre, email, password, role_id) VALUES (?,?,?,3)");
-    $insUser->execute([$nombre, $email, $passwordHash]);
+    $estadoActivoId = (int)$pdo->query("SELECT id FROM estados WHERE nombre = 'activo' LIMIT 1")->fetchColumn();
+    $insUser = $pdo->prepare("INSERT INTO usuarios (nombre, email, password, role_id, id_estado) VALUES (?,?,?,?,?)");
+    $insUser->execute([$nombre, $email, $passwordHash, 3, $estadoActivoId ?: null]);
     $idUsuario = (int)$pdo->lastInsertId();
 
     // crear paciente
     $insPac = $pdo->prepare("
-        INSERT INTO pacientes (id_usuario, id_nutricionista, dni, fecha_nacimiento, telefono, estado, objetivo_principal)
-        VALUES (?,?,?,?,?,'activo',?)
+        INSERT INTO pacientes (id_usuario, id_nutricionista, dni, fecha_nacimiento, telefono, objetivo_principal) VALUES (?,?,?,?,?,?)
     ");
     $insPac->execute([
         $idUsuario,
@@ -80,3 +80,6 @@ try {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Error al crear el paciente.']);
 }
+
+
+

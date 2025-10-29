@@ -71,21 +71,13 @@ try {
     // 7) Hashear contraseña temporal
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-    // 8) Insertar en 'usuarios' (si existe assigned_nutricionista_id lo usamos)
-    $colCheck = $pdo->query("SHOW COLUMNS FROM usuarios LIKE 'assigned_nutricionista_id'");
-    if ($colCheck && $colCheck->rowCount() > 0) {
-        $stmt = $pdo->prepare("
-            INSERT INTO usuarios (nombre, email, password, role_id, assigned_nutricionista_id)
+    // 8) Insertar en 'usuarios' con estado 'activo'
+    $estadoActivoId = (int)$pdo->query("SELECT id FROM estados WHERE nombre = 'activo' LIMIT 1")->fetchColumn();
+    $stmt = $pdo->prepare("
+            INSERT INTO usuarios (nombre, email, password, role_id, id_estado)
             VALUES (?, ?, ?, ?, ?)
         ");
-        $stmt->execute([$nombre, $email, $password_hash, $role_id, $_SESSION['user_id']]);
-    } else {
-        $stmt = $pdo->prepare("
-            INSERT INTO usuarios (nombre, email, password, role_id)
-            VALUES (?, ?, ?, ?)
-        ");
-        $stmt->execute([$nombre, $email, $password_hash, $role_id]);
-    }
+    $stmt->execute([$nombre, $email, $password_hash, $role_id, $estadoActivoId ?: null]);
     $user_id = (int)$pdo->lastInsertId();
 
     // 8.1) Obtener el ID del nutricionista (tabla 'nutricionistas') del usuario logueado
@@ -103,8 +95,8 @@ try {
 
     // 8.2) Crear fila en 'pacientes' enlazada al nuevo usuario y al nutricionista creador
     $pacStmt = $pdo->prepare("
-        INSERT INTO pacientes (id_usuario, id_nutricionista, dni, fecha_nacimiento, telefono, estado, objetivo_principal)
-        VALUES (?, ?, ?, ?, ?, 'activo', ?)
+        INSERT INTO pacientes (id_usuario, id_nutricionista, dni, fecha_nacimiento, telefono, objetivo_principal)
+        VALUES (?, ?, ?, ?, ?, ?)
     ");
     $pacStmt->execute([
         $user_id,

@@ -26,9 +26,15 @@ if (isset($_GET['ajax'])) {
 
         if ($idNutricionista) {
             $params = [$idNutricionista];
-            $sqlPac = "SELECT p.id AS paciente_id, p.estado, u.nombre, u.email
+            $sqlPac = "SELECT 
+                       p.id AS paciente_id,
+                       u.id AS user_id,
+                       u.nombre,
+                       u.email,
+                       e.nombre AS estado_nombre
                        FROM pacientes p
                        JOIN usuarios u ON p.id_usuario = u.id
+                       LEFT JOIN estados e ON u.id_estado = e.id
                        WHERE p.id_nutricionista = ?";
 
             if (!empty($search_query)) {
@@ -190,24 +196,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 const row = document.createElement('tr');
                 row.dataset.pacienteId = p.paciente_id;
 
-                // Estado válido en BD: 'activo' | 'alta'
-                const estadoBadge = p.estado === 'activo' ? 'bg-success' : (p.estado === 'alta' ? 'bg-secondary' : 'bg-danger');
-                const estadoTexto = (p.estado || '').replace('_', ' ');
-                const altaBtnIcon = p.estado === 'activo'
-                    ? 'bi-patch-check-fill text-success'
-                    : 'bi-arrow-up-right-circle-fill text-secondary';
-                const altaBtnTitle = p.estado === 'activo'
-                    ? 'Dar de Alta Médica'
-                    : 'Reingresar Paciente';
-                const nuevoEstado = p.estado === 'activo' ? 'alta' : 'activo';
+                // Estado del usuario: 'activo' | 'inactivo' | 'pendiente'
+                const est = (p.estado_nombre || '').toLowerCase();
+                const estadoBadge = est === 'activo' ? 'bg-success' : (est === 'pendiente' ? 'bg-warning text-dark' : 'bg-danger');
+                const estadoTexto = est || 'N/A';
+                const toggleIcon = est === 'activo' ? 'bi-person-dash-fill text-danger' : 'bi-person-check-fill text-success';
+                const toggleTitle = est === 'activo' ? 'Desactivar paciente' : 'Activar paciente';
+                const nuevoEstado = est === 'activo' ? 'inactivo' : 'activo';
 
                 row.innerHTML = `
                     <td>${p.nombre}</td>
                     <td>${p.email}</td>
                     <td><span class="badge ${estadoBadge}">${estadoTexto}</span></td>
                     <td class="text-center actions-cell">
-                        <button type="button" class="btn btn-sm btn-light btn-estado" data-nuevo-estado="${nuevoEstado}" title="${altaBtnTitle}">
-                            <i class="bi ${altaBtnIcon}"></i>
+                        <button type="button" class="btn btn-sm btn-light btn-estado" data-nuevo-estado="${nuevoEstado}" title="${toggleTitle}">
+                            <i class="bi ${toggleIcon}"></i>
                         </button>
                         <button type="button" class="btn btn-sm btn-warning me-2 btn-edit" title="Editar Ficha">
                             <i class="bi bi-pencil-square"></i>
@@ -240,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (actionButton.classList.contains('btn-estado')) {
             const nuevoEstado = actionButton.dataset.nuevoEstado;
-            if (!confirm(`¿Estás seguro de que deseas ${nuevoEstado === 'activo' ? 'reingresar' : 'dar de alta'} a este paciente?`)) return;
+            if (!confirm(`¿Estás seguro de que deseas ${nuevoEstado === 'activo' ? 'activar' : 'desactivar'} a este paciente?`)) return;
 
             const formData = new FormData();
             formData.append('paciente_id', pacienteId);

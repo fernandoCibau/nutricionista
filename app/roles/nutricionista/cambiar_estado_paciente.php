@@ -1,5 +1,5 @@
-<?php
-// cambiar_estado_paciente.php
+﻿<?php
+// cambiar_estado_paciente.php (Nutricionista)
 session_start();
 require_once '../../config.php';
 
@@ -11,30 +11,41 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 2) {
     exit;
 }
 
-$idPaciente  = (int)($_POST['paciente_id'] ?? 0);
-$nuevoEstado = $_POST['estado'] ?? '';
+$idPaciente  = (int)($_POST['paciente_id'] ?? 0); // pacientes.id
+$nuevoEstado = strtolower($_POST['estado'] ?? ''); // 'activo' | 'inactivo' | 'pendiente'
 
-if ($idPaciente <= 0 || !in_array($nuevoEstado, ['activo','alta'], true)) {
+if ($idPaciente <= 0 || !in_array($nuevoEstado, ['activo','inactivo','pendiente'], true)) {
     echo json_encode(['success' => false, 'message' => 'Datos inválidos.']);
     exit;
 }
 
 try {
+    // Mapear estado por nombre a su ID
+    $stmtEstado = $pdo->prepare("SELECT id FROM estados WHERE nombre = ? LIMIT 1");
+    $stmtEstado->execute([$nuevoEstado]);
+    $estadoId = $stmtEstado->fetchColumn();
+    if (!$estadoId) {
+        echo json_encode(['success' => false, 'message' => 'Estado no válido.']);
+        exit;
+    }
+
+    // Actualizar usuarios.id_estado del paciente, validando pertenencia al nutricionista actual
     $st = $pdo->prepare("
-        UPDATE pacientes p
+        UPDATE usuarios u
+        JOIN pacientes p ON p.id_usuario = u.id
         JOIN nutricionistas n ON n.id = p.id_nutricionista
-        SET p.estado = ?
+        SET u.id_estado = ?
         WHERE p.id = ? AND n.id_usuario = ?
         LIMIT 1
     ");
-    $st->execute([$nuevoEstado, $idPaciente, $_SESSION['user_id']]);
+    $st->execute([$estadoId, $idPaciente, $_SESSION['user_id']]);
 
     if ($st->rowCount() === 0) {
         echo json_encode(['success' => false, 'message' => 'No se pudo actualizar el estado.']);
         exit;
     }
 
-    $msg = $nuevoEstado === 'alta' ? 'Paciente dado de alta médica.' : 'Paciente reingresado (activo).';
+    $msg = $nuevoEstado === 'activo' ? 'Paciente activado.' : ($nuevoEstado === 'inactivo' ? 'Paciente desactivado.' : 'Estado actualizado.');
     echo json_encode(['success' => true, 'message' => $msg]);
 } catch (Throwable $e) {
     error_log('cambiar_estado_paciente: '.$e->getMessage());

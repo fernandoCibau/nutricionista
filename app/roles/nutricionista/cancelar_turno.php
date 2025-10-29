@@ -73,9 +73,9 @@ if (!$own->fetch()) {
   exit;
 }
 
-// Cancelar
-$up = $pdo->prepare("UPDATE turnos SET estado = 'cancelado' WHERE id = ?");
-$ok = $up->execute([$turnoId]);
+// Cancelar: no existe columna 'estado' en turnos; borrar el turno
+$del = $pdo->prepare("DELETE FROM turnos WHERE id = ?");
+$ok = $del->execute([$turnoId]);
 
 $msgOk = $ok ? 'Turno cancelado' : 'No se pudo cancelar el turno';
 if ($wantsJson) {

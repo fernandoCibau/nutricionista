@@ -1,19 +1,19 @@
-<?php
-// 1) Iniciar sesión y verificar rol NUTRICIONISTA (rol_id = 2)
+﻿<?php
+// 1) Iniciar sesiÃ³n y verificar rol NUTRICIONISTA (rol_id = 2)
 session_start();
 
-// 2. Verificar si el usuario está logueado y tiene el rol correcto.
-// Si no hay sesión o el rol no es 'nutricionista', se redirige al login.
+// 2. Verificar si el usuario estÃ¡ logueado y tiene el rol correcto.
+// Si no hay sesiÃ³n o el rol no es 'nutricionista', se redirige al login.
 // Corregir ruta relativa: desde app/roles/nutri/ para ir al login en app/index.php
 if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 2 && $_SESSION['user_rol'] !== 1) {
-    header('Location: ../../index.php'); // Redirige a la página de login
+    header('Location: ../../index.php'); // Redirige a la pÃ¡gina de login
     exit;
 }
 
-// 2) Datos de sesión para UI
+// 2) Datos de sesiÃ³n para UI
 $nombre_usuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
 
-// 3) Conexión a BD
+// 3) ConexiÃ³n a BD
 require_once '../../config.php';
 
 // --- Carga de datos para la vista ---
@@ -31,9 +31,9 @@ try {
     if ($nutri) {
         $idNutricionista = (int)$nutri['id'];
 
-        // Obtener turnos para hoy
+        // Obtener turnos para hoy (sin columna 'estado' en esquema actual)
         $sql_turnos_hoy = "
-            SELECT t.id, t.fecha_hora, u.nombre as paciente_nombre, t.estado
+            SELECT t.id, t.fecha_hora, u.nombre as paciente_nombre
             FROM turnos t
             JOIN pacientes p ON t.id_paciente = p.id
             JOIN usuarios u ON p.id_usuario = u.id
@@ -44,12 +44,13 @@ try {
         $st_hoy->execute([$idNutricionista]);
         $turnos_hoy = $st_hoy->fetchAll(PDO::FETCH_ASSOC);
 
-        // Obtener pacientes activos para el dropdown
+        // Obtener pacientes activos (segÃºn usuarios.id_estado -> estados.nombre = 'activo') para el dropdown
         $sql_pacientes = "
-            SELECT p.id, u.nombre 
+            SELECT p.id, u.nombre
             FROM pacientes p
             JOIN usuarios u ON p.id_usuario = u.id
-            WHERE p.id_nutricionista = ? AND p.estado = 'activo'
+            LEFT JOIN estados e ON u.id_estado = e.id
+            WHERE p.id_nutricionista = ? AND e.nombre = 'activo'
             ORDER BY u.nombre ASC
         ";
         $st_pacientes = $pdo->prepare($sql_pacientes);
@@ -115,7 +116,7 @@ try {
         </div>
         <?php endif; ?>
 
-        <!-- Tabla de Gestión de Usuarios -->
+        <!-- Tabla de GestiÃ³n de Usuarios -->
         <div class="card shadow-sm">
             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
                 <h2 class="h4 mb-0">Controles del Calendario</h2>
@@ -139,7 +140,6 @@ try {
                                     <?php foreach ($turnos_hoy as $turno): ?>
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
                                             <span><?php echo htmlspecialchars($turno['paciente_nombre']); ?> - <?php echo date('H:i', strtotime($turno['fecha_hora'])); ?>hs</span>
-                                            <span class="badge bg-info text-dark"><?php echo htmlspecialchars(ucfirst($turno['estado'])); ?></span>
                                         </li>
                                     <?php endforeach; ?>
                                 </ul>
@@ -178,13 +178,7 @@ try {
                             <input type="datetime-local" class="form-control" id="fecha_hora" name="fecha_hora" required>
                         </div>
                         <div class="mb-3">
-                            <label for="estado" class="form-label">Estado</label>
-                            <select class="form-select" id="estado" name="estado" required>
-                                <option value="pendiente">Pendiente</option>
-                                <option value="confirmado">Confirmado</option>
-                                <option value="cancelado">Cancelado</option>
-                            </select>
-                        </div>
+                            
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="senia" class="form-label">Seña ($)</label>
@@ -225,7 +219,7 @@ try {
             },
             events: 'obtener_turnos.php',
             locale: 'es',
-            buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día' },
+            buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'DÃ­a' },
             slotMinTime: '07:00:00',
             slotMaxTime: '22:00:00',
             selectable: true,
@@ -255,7 +249,6 @@ try {
 
                 turnoIdInput.value = publicData.id;
                 document.getElementById('id_paciente').value = eventData.id_paciente;
-                document.getElementById('estado').value = eventData.estado;
                 document.getElementById('senia').value = eventData.senia;
                 document.getElementById('pagado').checked = eventData.pagado == 1;
 
@@ -269,7 +262,7 @@ try {
         });
         calendar.render();
 
-        // Botón "Crear Turno"
+        // BotÃ³n "Crear Turno"
         document.getElementById('btnCrearTurno').addEventListener('click', function() {
             turnoForm.reset();
             turnoIdInput.value = '';
@@ -292,7 +285,8 @@ try {
             .then(data => {
                 if (data.success) {
                     turnoModal.hide();
-                    calendar.refetchEvents();
+                    // Recargar toda la página para actualizar listado lateral y calendario
+                    window.location.reload();
                 } else {
                     alert('Error: ' + data.message);
                 }
@@ -300,10 +294,10 @@ try {
             .catch(error => console.error('Error:', error));
         });
 
-        // Botón "Cancelar Turno" en el modal
+        // BotÃ³n "Cancelar Turno" en el modal
         document.getElementById('btnCancelarTurno').addEventListener('click', function() {
             const id = turnoIdInput.value;
-            if (id && confirm('¿Estás seguro de que deseas cancelar este turno?')) {
+            if (id && confirm('Â¿EstÃ¡s seguro de que deseas cancelar este turno?')) {
                 const formData = new FormData();
                 formData.append('turno_id', id);
                 formData.append('estado', 'cancelado');
@@ -316,7 +310,7 @@ try {
                 .then(data => {
                     if (data.success) {
                         turnoModal.hide();
-                        calendar.refetchEvents();
+                        window.location.reload();
                     } else {
                         alert('Error: ' + data.message);
                     }
@@ -325,7 +319,7 @@ try {
             }
         });
 
-        // Búsqueda en tiempo real
+        // BÃºsqueda en tiempo real
         const searchInput = document.querySelector('input[name="search_query"]');
         const listContainer = document.getElementById('list-container');
         const originalListHTML = listContainer.innerHTML;
@@ -344,7 +338,7 @@ try {
                 calendar.refetchEvents();
 
                 if (searchQuery) {
-                    listTitleEl.innerHTML = '<i class="bi bi-search me-2"></i>Resultados de la Búsqueda';
+                    listTitleEl.innerHTML = '<i class="bi bi-search me-2"></i>Resultados de la Busqueda';
                     fetch(eventSourceUrl)
                         .then(response => response.json())
                         .then(data => {
@@ -373,3 +367,4 @@ try {
     </script>
 </body>
 </html>
+

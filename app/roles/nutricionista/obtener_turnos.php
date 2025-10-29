@@ -26,7 +26,6 @@ try {
             t.id, 
             u.nombre AS title, 
             t.fecha_hora AS start, 
-            t.estado,
             t.id_paciente,
             t.senia,
             t.pagado
@@ -49,12 +48,8 @@ try {
 
     $eventos = [];
     foreach ($turnos as $turno) {
-        $color = '#007bff'; // azul para pendiente
-        if ($turno['estado'] === 'confirmado') {
-            $color = '#28a745'; // verde
-        } elseif ($turno['estado'] === 'cancelado') {
-            $color = '#dc3545'; // rojo
-        }
+        // Sin columna 'estado': colorear por 'pagado'
+        $color = ((int)$turno['pagado'] === 1) ? '#28a745' : '#007bff';
 
         $eventos[] = [
             'id'    => $turno['id'],
@@ -64,8 +59,7 @@ try {
             'extendedProps' => [
                 'id_paciente' => $turno['id_paciente'],
                 'senia' => $turno['senia'],
-                'pagado' => $turno['pagado'],
-                'estado' => $turno['estado']
+                'pagado' => $turno['pagado']
             ]
         ];
     }

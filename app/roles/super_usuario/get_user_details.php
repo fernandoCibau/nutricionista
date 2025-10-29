@@ -1,12 +1,12 @@
-<?php
+﻿<?php
 /**
- * Endpoint para obtener detalles de un usuario específico (pacientes de un nutri, o nutri de un paciente).
+ * Endpoint para obtener detalles de un usuario especÃ­fico (pacientes de un nutri, o nutri de un paciente).
  * Solo accesible por el superadmin.
  */
 
 session_start();
 
-// 1. Seguridad: Verificar sesión y rol de superadmin
+// 1. Seguridad: Verificar sesiÃ³n y rol de superadmin
 if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 1) {
     http_response_code(403); // Forbidden
     echo json_encode(['error' => 'Acceso no autorizado.']);
@@ -19,7 +19,7 @@ require_once '../../config.php';
 $user_id = filter_input(INPUT_GET, 'user_id', FILTER_VALIDATE_INT);
 if (!$user_id) {
     http_response_code(400); // Bad Request
-    echo json_encode(['error' => 'ID de usuario inválido.']);
+    echo json_encode(['error' => 'ID de usuario invÃ¡lido.']);
     exit;
 }
 
@@ -46,11 +46,17 @@ try {
     $details = [];
     $role_name = strtolower($user['nombre_rol']);
 
-    // 4. Obtener detalles adicionales según el rol
+    // 4. Obtener detalles adicionales segÃºn el rol
     if ($role_name === 'nutricionista') {
-        // Si es nutricionista, buscar sus pacientes
+        // Si es nutricionista, buscar sus pacientes (incluyendo estado clÃ­nico de pacientes)
         $stmt_patients = $pdo->prepare("
-            SELECT u.id, u.nombre, u.email, e.nombre as estado_nombre
+            SELECT
+                u.id,
+                u.nombre,
+                u.email,
+                e.nombre as estado_nombre,
+                p.id AS paciente_id,
+                /* estado_paciente removido */ NULL AS estado_paciente
             FROM usuarios u
             JOIN pacientes p ON u.id = p.id_usuario
             LEFT JOIN estados e ON u.id_estado = e.id
@@ -62,7 +68,11 @@ try {
         $details['pacientes'] = $stmt_patients->fetchAll(PDO::FETCH_ASSOC);
 
     } elseif ($role_name === 'paciente') {
-        // Si es paciente, buscar su nutricionista asignado
+        // Si es paciente, devolver su estado clÃ­nico y su nutricionista asignado
+        $stmt_p = $pdo->prepare("SELECT id AS paciente_id FROM pacientes WHERE id_usuario = ? LIMIT 1");
+        $stmt_p->execute([$user_id]);
+        $details['paciente'] = $stmt_p->fetch(PDO::FETCH_ASSOC) ?: null;
+
         $stmt_nutri = $pdo->prepare("
             SELECT u.nombre, u.email
             FROM usuarios u

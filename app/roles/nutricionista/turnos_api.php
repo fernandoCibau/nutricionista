@@ -9,7 +9,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 2) {
 }
 
 require_once '../../config.php';                  // Debe definir $pdo (PDO)
-require_once '../../libs/vendor/autoload.php';
 header('Content-Type: application/json; charset=UTF-8');
 
 // 1) Mapear usuario -> nutricionista.id
@@ -26,7 +25,7 @@ $idNutricionista = (int)$nutri['id'];
 // $start = $_GET['start'] ?? null; // ISO
 // $end   = $_GET['end']   ?? null;
 
-$sql = "SELECT t.id, t.fecha_hora, t.estado, t.pagado, t.senia, t.monto,
+$sql = "SELECT t.id, t.fecha_hora, t.pagado, t.senia,
                p.id AS paciente_id, u.nombre AS paciente_nombre
         FROM turnos t
         JOIN pacientes p ON p.id = t.id_paciente
@@ -44,10 +43,8 @@ $events = array_map(function($r){
     'title' => $r['paciente_nombre'] ? $r['paciente_nombre'] : ('Paciente #' . $r['paciente_id']),
     'start' => date('c', strtotime($r['fecha_hora'])), // ISO 8601
     'extendedProps' => [
-      'estado' => $r['estado'],
       'pagado' => (int)$r['pagado'] === 1,
-      'senia'  => $r['senia'],
-      'monto'  => $r['monto']
+      'senia'  => $r['senia']
     ]
   ];
 }, $rows);

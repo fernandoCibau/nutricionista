@@ -147,6 +147,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (editUserModal) {
         const statusContainer = document.getElementById('edit-status-container');
         const statusSelect = document.getElementById('edit-user-status-id');
+        const pacienteEstadoContainer = document.getElementById('edit-paciente-estado-container');
+        const pacienteEstadoSelect = document.getElementById('edit-paciente-estado');
         const roleSelect = document.getElementById('edit-user-role');
 
         function toggleStatusField() {
@@ -154,10 +156,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!selectedRoleOption) return;
             
             const selectedRoleText = selectedRoleOption.text.toLowerCase();
-            if (selectedRoleText === 'paciente' || selectedRoleText === 'nutricionista') {
-                statusContainer.style.display = 'block';
-            } else {
-                statusContainer.style.display = 'none';
+            const showUserStatus = (selectedRoleText === 'paciente' || selectedRoleText === 'nutricionista');
+            statusContainer.style.display = showUserStatus ? 'block' : 'none';
+
+            // Mostrar estado clínico solo si el rol es paciente
+            if (pacienteEstadoContainer) {
+                pacienteEstadoContainer.style.display = (selectedRoleText === 'paciente') ? 'block' : 'none';
             }
         }
 
@@ -176,6 +180,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Mostrar/ocultar el selector de estado y poblarlo
             statusSelect.value = ""; // Por defecto, no se selecciona nada para no cambiarlo accidentalmente
+            if (typeof pacienteEstadoSelect !== 'undefined' && pacienteEstadoSelect) { pacienteEstadoSelect.value = ""; }
             toggleStatusField(); // Llamar a la función para establecer la visibilidad inicial
         });
 

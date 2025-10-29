@@ -18,13 +18,20 @@ if ($filter === 'month') {
     $end = (clone $start)->modify('+7 days');
 }
 
-$stmt = $pdo->prepare("SELECT t.id, t.id_nutricionista, t.id_paciente, t.fecha_hora, t.estado, t.senia, t.pagado, t.monto, u.nombre as paciente_nombre
+// Mapear usuario (usuarios.id) a nutricionistas.id
+$stmtNutri = $pdo->prepare("SELECT id FROM nutricionistas WHERE id_usuario = ? LIMIT 1");
+$stmtNutri->execute([$_SESSION['user_id']]);
+$nutri = $stmtNutri->fetch(PDO::FETCH_ASSOC);
+$idNutricionista = $nutri ? (int)$nutri['id'] : 0;
+
+$stmt = $pdo->prepare("SELECT t.id, t.id_nutricionista, t.id_paciente, t.fecha_hora, t.senia, t.pagado, u.nombre as paciente_nombre
     FROM turnos t
-    LEFT JOIN usuarios u ON u.id = t.id_paciente
+    JOIN pacientes p ON p.id = t.id_paciente
+    LEFT JOIN usuarios u ON u.id = p.id_usuario
     WHERE t.id_nutricionista = ? AND t.fecha_hora >= ? AND t.fecha_hora < ?
     ORDER BY t.fecha_hora ASC");
-$stmt->execute([$_SESSION['user_id'], $start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s')]);
-$turnos = $stmt->fetchAll();
+$stmt->execute([$idNutricionista, $start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s')]);
+$turnos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 <!DOCTYPE html>
@@ -52,10 +59,8 @@ $turnos = $stmt->fetchAll();
                     <tr>
                         <th>Fecha y Hora</th>
                         <th>Paciente</th>
-                        <th>Estado</th>
                         <th>Seña</th>
                         <th>Pagado</th>
-                        <th>Monto</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -64,26 +69,14 @@ $turnos = $stmt->fetchAll();
                     <tr>
                         <td><?php echo date('d/m/Y H:i', strtotime($t['fecha_hora'])); ?></td>
                         <td><?php echo htmlspecialchars($t['paciente_nombre'] ?? 'Paciente #' . $t['id_paciente']); ?></td>
-                        <td><?php echo htmlspecialchars($t['estado']); ?></td>
                         <td><?php echo htmlspecialchars($t['senia'] ?? ''); ?></td>
                         <td><?php echo !empty($t['pagado']) ? 'Sí' : 'No'; ?></td>
-                        <td><?php echo $t['monto'] !== null ? number_format($t['monto'],2,',','.') : '-'; ?></td>
                         <td>
-                            <?php if ($t['estado'] === 'programado'): ?>
-                                <form action="cancelar_turno.php" method="POST" style="display:inline">
-                                    <input type="hidden" name="id_paciente" value="<?php echo $t['id_paciente']; ?>">
-                                    <input type="hidden" name="fecha_hora" value="<?php echo htmlspecialchars($t['fecha_hora']); ?>">
-                                    <button class="btn btn-sm btn-danger" onclick="return confirm('Cancelar turno?')">Cancelar</button>
-                                </form>
-                                <form action="registrar_pago.php" method="POST" style="display:inline" class="ms-1">
-                                    <input type="hidden" name="turno_id" value="<?php echo $t['id']; ?>">
-                                    <input type="hidden" name="pagado" value="1">
-                                    <input type="hidden" name="monto" value="<?php echo $t['monto'] ?? ''; ?>">
-                                    <button class="btn btn-sm btn-success">Marcar Pago</button>
-                                </form>
-                            <?php else: ?>
-                                -
-                            <?php endif; ?>
+                            <form action="cancelar_turno.php" method="POST" style="display:inline">
+                                <input type="hidden" name="id_paciente" value="<?php echo $t['id_paciente']; ?>">
+                                <input type="hidden" name="fecha_hora" value="<?php echo htmlspecialchars($t['fecha_hora']); ?>">
+                                <button class="btn btn-sm btn-danger" onclick="return confirm('Cancelar turno?')">Cancelar</button>
+                            </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>

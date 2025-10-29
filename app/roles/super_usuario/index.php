@@ -452,6 +452,16 @@ if (isset($_GET['error'])) {
                                 <?php endforeach; ?>
                             </select>
                         </div>
+
+                        <!-- Estado Clínico del Paciente (solo visible si el rol es paciente) -->
+                        <div class="mb-3" id="edit-paciente-estado-container" style="display: none;">
+                            <label for="edit-paciente-estado" class="form-label">Estado clínico del paciente</label>
+                            <select class="form-select" id="edit-paciente-estado" name="paciente_estado">
+                                <option value="">-- Sin Cambiar --</option>
+                                <option value="activo">Activo</option>
+                                <option value="alta">Alta</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
