@@ -20,7 +20,7 @@ if ($id <= 0) {
 try {
     $st = $pdo->prepare("
         SELECT
-            p.id AS paciente_id, p.dni, p.fecha_nacimiento, p.telefono, p.estado, p.objetivo_principal,
+            p.id AS paciente_id, p.dni, p.fecha_nacimiento, p.telefono, p.objetivo_principal,
             u.nombre, u.email
         FROM pacientes p
         JOIN usuarios u ON u.id = p.id_usuario

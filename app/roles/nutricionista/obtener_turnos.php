@@ -25,7 +25,8 @@ try {
         SELECT 
             t.id, 
             u.nombre AS title, 
-            t.fecha_hora AS start, 
+            t.fecha_hora AS start,
+            DATE_ADD(t.fecha_hora, INTERVAL 30 MINUTE) AS `end`,
             t.id_paciente,
             t.senia,
             t.pagado
@@ -55,6 +56,7 @@ try {
             'id'    => $turno['id'],
             'title' => $turno['title'],
             'start' => $turno['start'],
+            'end'   => $turno['end'],
             'color' => $color,
             'extendedProps' => [
                 'id_paciente' => $turno['id_paciente'],

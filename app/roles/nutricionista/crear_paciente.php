@@ -46,7 +46,7 @@ try {
     }
 
     // crear usuario paciente (role_id = 3)
-    $passwordTemp = bin2hex(random_bytes(4)); // 8 caracteres hex
+    $passwordTemp = '123123'; // 8 caracteres hex
     $passwordHash = password_hash($passwordTemp, PASSWORD_BCRYPT);
 
     $estadoActivoId = (int)$pdo->query("SELECT id FROM estados WHERE nombre = 'activo' LIMIT 1")->fetchColumn();

@@ -164,14 +164,12 @@ try {
                 <form id="turnoForm">
                     <div class="modal-body">
                         <input type="hidden" id="turno_id" name="turno_id">
-                        <div class="mb-3">
-                            <label for="id_paciente" class="form-label">Paciente</label>
-                            <select class="form-select" id="id_paciente" name="id_paciente" required>
-                                <option value="">Seleccione un paciente...</option>
-                                <?php foreach ($pacientes_activos as $paciente): ?>
-                                    <option value="<?php echo $paciente['id']; ?>"><?php echo htmlspecialchars($paciente['nombre']); ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                        <div class="mb-3 position-relative">
+                            <label for="paciente_buscar" class="form-label">Paciente</label>
+                            <input type="hidden" id="id_paciente" name="id_paciente">
+                            <input type="text" class="form-control" id="paciente_buscar" autocomplete="off" placeholder="Buscar por nombre o DNI..." required>
+                            <div id="paciente_sugerencias" class="list-group" style="position:absolute; z-index:1055; width:100%; max-height:220px; overflow:auto; display:none;"></div>
+                            <div class="form-text">Escribe al menos 2 caracteres, luego selecciona un paciente.</div>
                         </div>
                         <div class="mb-3">
                             <label for="fecha_hora" class="form-label">Fecha y Hora</label>
@@ -249,6 +247,7 @@ try {
 
                 turnoIdInput.value = publicData.id;
                 document.getElementById('id_paciente').value = eventData.id_paciente;
+                document.getElementById('paciente_buscar').value = publicData.title || '';
                 document.getElementById('senia').value = eventData.senia;
                 document.getElementById('pagado').checked = eventData.pagado == 1;
 
@@ -276,6 +275,13 @@ try {
             e.preventDefault();
             const formData = new FormData(turnoForm);
             const url = formData.get('turno_id') ? 'modificar_turno.php' : 'crear_turno.php';
+
+            // Validar paciente seleccionado desde sugerencias
+            if (!formData.get('id_paciente')) {
+                alert('Selecciona un paciente de la lista.');
+                document.getElementById('paciente_buscar').focus();
+                return;
+            }
 
             fetch(url, {
                 method: 'POST',
@@ -362,6 +368,57 @@ try {
                     listContainer.innerHTML = originalListHTML;
                 }
             }, 300);
+        });
+
+        // Buscador de Paciente (en el modal)
+        const pacienteBuscar = document.getElementById('paciente_buscar');
+        const pacienteIdHidden = document.getElementById('id_paciente');
+        const sugerencias = document.getElementById('paciente_sugerencias');
+        let debouncePaciente;
+
+        function limpiarSugerencias() {
+            sugerencias.innerHTML = '';
+            sugerencias.style.display = 'none';
+        }
+
+        function renderSugerencias(items) {
+            sugerencias.innerHTML = '';
+            if (!items || items.length === 0) { limpiarSugerencias(); return; }
+            items.forEach(it => {
+                const a = document.createElement('a');
+                a.href = '#';
+                a.className = 'list-group-item list-group-item-action';
+                const label = `${it.nombre} (${it.dni || 'sin DNI'})`;
+                a.textContent = label;
+                a.addEventListener('click', (ev) => {
+                    ev.preventDefault();
+                    pacienteBuscar.value = label;
+                    pacienteIdHidden.value = it.id;
+                    limpiarSugerencias();
+                });
+                sugerencias.appendChild(a);
+            });
+            sugerencias.style.display = 'block';
+        }
+
+        pacienteBuscar.addEventListener('input', function(e) {
+            pacienteIdHidden.value = '';
+            const q = e.target.value.trim();
+            clearTimeout(debouncePaciente);
+            if (q.length < 2) { limpiarSugerencias(); return; }
+            debouncePaciente = setTimeout(() => {
+                fetch('buscar_pacientes.php?q=' + encodeURIComponent(q))
+                    .then(r => r.json())
+                    .then(renderSugerencias)
+                    .catch(() => limpiarSugerencias());
+            }, 250);
+        });
+
+        document.addEventListener('click', function(e){
+            const wrapper = document.getElementById('paciente_buscar').closest('.mb-3');
+            if (wrapper && !wrapper.contains(e.target)) {
+                limpiarSugerencias();
+            }
         });
     });
     </script>
