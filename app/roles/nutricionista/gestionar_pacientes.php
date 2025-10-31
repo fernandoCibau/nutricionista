@@ -200,18 +200,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 const est = (p.estado_nombre || '').toLowerCase();
                 const estadoBadge = est === 'activo' ? 'bg-success' : (est === 'pendiente' ? 'bg-warning text-dark' : 'bg-danger');
                 const estadoTexto = est || 'N/A';
-                const toggleIcon = est === 'activo' ? 'bi-person-dash-fill text-danger' : 'bi-person-check-fill text-success';
-                const toggleTitle = est === 'activo' ? 'Desactivar paciente' : 'Activar paciente';
-                const nuevoEstado = est === 'activo' ? 'inactivo' : 'activo';
 
                 row.innerHTML = `
                     <td>${p.nombre}</td>
                     <td>${p.email}</td>
                     <td><span class="badge ${estadoBadge}">${estadoTexto}</span></td>
                     <td class="text-center actions-cell">
-                        <button type="button" class="btn btn-sm btn-light btn-estado" data-nuevo-estado="${nuevoEstado}" title="${toggleTitle}">
-                            <i class="bi ${toggleIcon}"></i>
-                        </button>
                         <button type="button" class="btn btn-sm btn-warning me-2 btn-edit" title="Editar Ficha">
                             <i class="bi bi-pencil-square"></i>
                         </button>
@@ -241,21 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const pacienteId = actionButton.closest('tr').dataset.pacienteId;
 
-        if (actionButton.classList.contains('btn-estado')) {
-            const nuevoEstado = actionButton.dataset.nuevoEstado;
-            if (!confirm(`¿Estás seguro de que deseas ${nuevoEstado === 'activo' ? 'activar' : 'desactivar'} a este paciente?`)) return;
-
-            const formData = new FormData();
-            formData.append('paciente_id', pacienteId);
-            formData.append('estado', nuevoEstado);
-
-            fetch('cambiar_estado_paciente.php', { method: 'POST', body: formData })
-                .then(res => res.json())
-                .then(data => {
-                    showToast(data.message || 'Operación realizada', data.success ? 'success' : 'danger');
-                    if (data.success) fetchAndRenderTable();
-                });
-        } else if (actionButton.classList.contains('btn-edit')) {
+        if (actionButton.classList.contains('btn-edit')) {
             patientModalLabel.textContent = 'Editar Paciente';
             fetch(`obtener_paciente.php?id=${pacienteId}`)
                 .then(res => res.json())
@@ -325,3 +305,4 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
+

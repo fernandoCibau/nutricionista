@@ -33,7 +33,7 @@ try {
 
         // Obtener turnos para hoy (sin columna 'estado' en esquema actual)
         $sql_turnos_hoy = "
-            SELECT t.id, t.fecha_hora, u.nombre as paciente_nombre
+            SELECT t.id, t.fecha_hora, p.id AS paciente_id, u.nombre AS paciente_nombre
             FROM turnos t
             JOIN pacientes p ON t.id_paciente = p.id
             JOIN usuarios u ON p.id_usuario = u.id
@@ -94,7 +94,7 @@ try {
                     <li class="nav-item"><a class="nav-link text-white active" href="index.php"><i class="bi bi-calendar-event me-1"></i> Calendario</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="gestionar_pacientes.php"><i class="bi bi-people-fill me-1"></i> Pacientes</a></li>
                     <li class="nav-item ms-3"><span class="navbar-text text-white"><i class="bi bi-person-circle me-1"></i> <?php echo $nombre_usuario; ?></span></li>
-                    <li class="nav-item"><a class="nav-link logout-link text-white" href="../../logout.php"><i class="bi bi-box-arrow-right"></i><span> Cerrar Sesión</span></a></li>
+                    <li class="nav-item"><a class="nav-link logout-link text-white" href="../../logout.php"><i class="bi bi-box-arrow-right"></i><span> Cerrar Sesion</span></a></li>
                 </ul>
             </div>
         </div>
@@ -139,7 +139,12 @@ try {
                                 <ul class="list-group">
                                     <?php foreach ($turnos_hoy as $turno): ?>
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <span><?php echo htmlspecialchars($turno['paciente_nombre']); ?> - <?php echo date('H:i', strtotime($turno['fecha_hora'])); ?>hs</span>
+                                            <span>
+                                                <a href="vista_paciente.php?id=<?php echo (int)($turno['paciente_id'] ?? 0); ?>" class="text-decoration-none">
+                                                    <?php echo htmlspecialchars($turno['paciente_nombre']); ?>
+                                                </a>
+                                                - <?php echo date('H:i', strtotime($turno['fecha_hora'])); ?>hs
+                                            </span>
                                         </li>
                                     <?php endforeach; ?>
                                 </ul>
