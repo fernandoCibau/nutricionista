@@ -156,7 +156,7 @@ if (isset($_GET['error'])) {
     <!-- Dependencias de Estilos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../../assets/css/styles.css"> <!-- CORRECCIÓN: Usar los estilos generales -->
+    <link rel="stylesheet" href="public\styles.css"> <!-- CORRECCIÓN: Usar los estilos generales -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -166,7 +166,7 @@ if (isset($_GET['error'])) {
     <!-- Header para el panel de usuario -->
     <header class="navbar navbar-expand-lg shadow-sm navbar-primary bg-primary">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
+            <a class="navbar-brand d-flex align-items-center text-white" href="#">
                 <i class="bi bi-heart-pulse fs-4 me-2"></i>
                 <strong>NutriApp - Panel Superadmin</strong>
             </a>
@@ -181,13 +181,13 @@ if (isset($_GET['error'])) {
                 <ul class="navbar-nav ms-auto align-items-center">
                     <!-- Nombre de usuario en el header -->
                     <li class="nav-item me-3">
-                        <span class="navbar-text">
+                        <span class="navbar-text text-white">
                             <i class="bi bi-person-circle me-1"></i>
                             <?php echo $nombre_usuario; ?>
                         </span>
                     </li>
                     <li class="nav-item"> <!-- Botón de cerrar sesión -->
-                        <a class="nav-link logout-link" href="../../logout.php">
+                        <a class="nav-link logout-link text-white" href="../../logout.php">
                             <i class="bi bi-box-arrow-right"></i><span>Cerrar Sesión</span>
                         </a>
                     </li>
