@@ -101,6 +101,7 @@ try {
     </header>
 
     <main class="container my-5">
+<<<<<<< HEAD
         <?php if (isset($_SESSION['user_rol']) && $_SESSION['user_rol'] === 1): ?>
         <div class="mb-4">
             <a href="../super_usuario/index.php" class="btn btn-outline-secondary">
@@ -116,6 +117,20 @@ try {
         </div>
         <?php endif; ?>
 
+=======
+        <?php if (isset($_SESSION['original_admin_id']) && isset($_SESSION['original_admin_nombre'])): ?>
+            <div class="alert alert-warning border-warning d-flex justify-content-between align-items-center mb-4" role="alert">
+                <div>
+                    <i class="bi bi-person-fill-gear me-2"></i>
+                    Estás suplantando a <strong><?php echo htmlspecialchars($_SESSION['user_nombre']); ?></strong>.
+                </div>
+                <a href="../super_usuario/volver_admin.php" class="btn btn-warning fw-bold">Volver a mi sesión (<?php echo htmlspecialchars($_SESSION['original_admin_nombre']); ?>)</a>
+            </div>
+        <?php endif; ?>
+
+        <!-- Contenedor para las notificaciones (toasts) -->
+        <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100"></div>
+>>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
         <!-- Tabla de GestiÃ³n de Usuarios -->
         <div class="card shadow-sm">
             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
@@ -427,6 +442,42 @@ try {
         });
     });
     </script>
+<<<<<<< HEAD
 </body>
 </html>
 
+=======
+
+    <?php
+    // Lógica para mostrar notificaciones como "toasts"
+    if ($mensaje):
+    ?>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toastContainer = document.querySelector('.toast-container');
+        const toastMessage = "<?php echo addslashes(htmlspecialchars($mensaje)); ?>";
+        const toastType = "<?php echo $tipo_mensaje; ?>"; // 'success' o 'danger'
+        
+        const icon = toastType === 'success' ? '<i class="bi bi-check-circle-fill me-2"></i>' : '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+        const toastHTML = `
+            <div class="toast align-items-center text-white bg-${toastType} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${icon}
+                        ${toastMessage}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+
+        toastContainer.innerHTML = toastHTML;
+        const toastEl = toastContainer.querySelector('.toast');
+        const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+        toast.show();
+    });
+    </script>
+    <?php endif; ?>
+</body>
+</html>
+>>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)

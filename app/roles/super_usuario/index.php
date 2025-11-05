@@ -6,6 +6,18 @@ session_start();
 // Si no hay sesión o el rol no es 'superadmin', se redirige al login.
 if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 1) {
     // Corregir ruta relativa: desde app/roles/super_usuario/ para ir al login en app/index.php
+<<<<<<< HEAD
+=======
+
+    // Excepción: si estamos suplantando a un usuario, sí permitimos el acceso
+    // pero no si intentan acceder directamente al panel de superadmin.
+    // Si hay una sesión original de admin, lo redirigimos a su panel correcto.
+    if (isset($_SESSION['original_admin_id'])) {
+        header('Location: ../../index.php'); // Redirigir a la página de inicio para que se resuelva el rol
+        exit;
+    }
+
+>>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
     header('Location: ../../index.php'); // Redirige a la página de login
     exit;
 }
@@ -22,6 +34,10 @@ $nutricionistas_list = []; // Lista de nutricionistas para el modal
 $paciente_role_id = null; // ID del rol 'paciente'
 $estados_list = []; // Lista de estados para el modal de edición
 $filtro_rol = $_GET['rol'] ?? 'todos'; // Por defecto, mostrar todos
+<<<<<<< HEAD
+=======
+$search_query = trim($_GET['q'] ?? ''); // Obtener el término de búsqueda
+>>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
 
 try {
     // Obtener todos los roles e identificar el ID de 'paciente'
@@ -49,13 +65,19 @@ try {
             u.id, u.nombre, u.email, u.creado_en, u.role_id, u.id_estado,
             r.nombre AS nombre_rol,
             e.nombre AS estado_nombre,
+<<<<<<< HEAD
             un.nombre AS nutricionista_nombre
+=======
+            un.nombre AS nutricionista_nombre,
+            p.dni
+>>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
         FROM usuarios u
         JOIN roles r ON u.role_id = r.id
         LEFT JOIN estados e ON u.id_estado = e.id
         LEFT JOIN pacientes p ON p.id_usuario = u.id
         LEFT JOIN nutricionistas n ON n.id = p.id_nutricionista
         LEFT JOIN usuarios un ON un.id = n.id_usuario";
+<<<<<<< HEAD
 
     $params = [];
     // El filtro 'todos' no aplica una cláusula WHERE
@@ -63,15 +85,43 @@ try {
         // Mapear nombre de filtro a nombre de rol real en BD
         $rol_buscar = $filtro_rol === 'super_usuario' ? 'superadmin' : $filtro_rol;
         // Mapear el nombre del rol a su ID
+=======
+    
+    $where_clauses = [];
+    $params = [];
+
+    // Aplicar filtro por rol
+    if ($filtro_rol && $filtro_rol !== 'todos') {
+        $rol_buscar = $filtro_rol === 'super_usuario' ? 'superadmin' : $filtro_rol;
+>>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
         $stmt_rol_id = $pdo->prepare("SELECT id FROM roles WHERE nombre = ?");
         $stmt_rol_id->execute([$rol_buscar]);
         $rol_id_obj = $stmt_rol_id->fetch();
         if ($rol_id_obj) {
+<<<<<<< HEAD
             $sql_usuarios .= " WHERE u.role_id = ?";
+=======
+            $where_clauses[] = "u.role_id = ?";
+>>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
             $params[] = $rol_id_obj['id'];
         }
     }
 
+<<<<<<< HEAD
+=======
+    // Aplicar filtro por búsqueda
+    if ($search_query !== '') {
+        $where_clauses[] = "(u.nombre LIKE ? OR u.email LIKE ? OR p.dni LIKE ?)";
+        $params[] = "%$search_query%";
+        $params[] = "%$search_query%";
+        $params[] = "%$search_query%";
+    }
+
+    if (!empty($where_clauses)) {
+        $sql_usuarios .= " WHERE " . implode(' AND ', $where_clauses);
+    }
+
+>>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
     $sql_usuarios .= " ORDER BY u.nombre ASC";
     
     $stmt_usuarios = $pdo->prepare($sql_usuarios);
@@ -198,6 +248,7 @@ if (isset($_GET['error'])) {
 
     <!-- Contenido principal del dashboard -->
     <main class="container my-5">
+<<<<<<< HEAD
         <?php if ($mensaje): ?>
         <div class="alert alert-<?php echo $tipo_mensaje; ?> alert-dismissible fade show" role="alert">
             <?php echo htmlspecialchars($mensaje); ?>
@@ -233,12 +284,22 @@ if (isset($_GET['error'])) {
             </div>
         </div>
 
+=======
+        <!-- Contenedor para las notificaciones (toasts) -->
+        <div class="toast-container position-fixed top-0 end-0 p-3"></div>
+>>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
         <!-- Tabla de Gestión de Usuarios -->
         <div class="card shadow-sm">
             <div class="card-header bg-dark text-white">
                 <div class="d-flex flex-wrap justify-content-between align-items-center">
+<<<<<<< HEAD
                     <h2 class="h4 mb-2 mb-md-0">Gestión de Usuarios</h2>
                     <div class="d-flex flex-wrap gap-2">
+=======
+                    <!-- Lado Izquierdo: Buscador y Filtros -->
+                    <div class="d-flex flex-wrap align-items-center gap-3">
+                        <h2 class="h4 mb-0">Gestión de Usuarios</h2>
+>>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
                         <!-- Botones de Filtro -->
                         <div class="btn-group" role="group" aria-label="Filtros de rol">
                             <a href="index.php?rol=todos" class="btn <?php echo $filtro_rol === 'todos' ? 'btn-primary' : 'btn-outline-primary'; ?> btn-sm">Todos</a>
@@ -246,6 +307,16 @@ if (isset($_GET['error'])) {
                             <a href="index.php?rol=nutricionista" class="btn <?php echo $filtro_rol === 'nutricionista' ? 'btn-primary' : 'btn-outline-primary'; ?> btn-sm">Nutricionistas</a>
                             <a href="index.php?rol=paciente" class="btn <?php echo $filtro_rol === 'paciente' ? 'btn-primary' : 'btn-outline-primary'; ?> btn-sm">Pacientes</a>
                         </div>
+<<<<<<< HEAD
+=======
+                    </div>
+                    <!-- Lado Derecho: Acciones -->
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <!-- Campo de Búsqueda -->
+                        <div class="input-group input-group-sm" style="width: 250px;">
+                            <input type="search" id="searchInput" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Buscar por nombre, email, DNI..." value="<?php echo htmlspecialchars($search_query); ?>">
+                        </div>
+>>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
                             <i class="bi bi-person-plus-fill me-1"></i>
                             Agregar Usuario
@@ -264,7 +335,11 @@ if (isset($_GET['error'])) {
                                 <th>Nutricionista</th>
                                 <th>Email</th>
                                 <th>Fecha de Registro</th>
+<<<<<<< HEAD
                                 <th class="text-center">Acciones</th>
+=======
+                                <th class="text-center" style="width: 180px;">Acciones</th>
+>>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
                             </tr>
                         </thead>
                         <tbody>
@@ -323,6 +398,16 @@ if (isset($_GET['error'])) {
                                                 title="Editar">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
+<<<<<<< HEAD
+=======
+                                        <!-- Botón para suplantar usuario -->
+                                        <button type="button" class="btn btn-sm btn-secondary me-2 impersonate-btn"
+                                                onclick="location.href='impersonar_usuario.php?id=<?php echo $usuario['id']; ?>'"
+                                                title="Suplantar Usuario"
+                                                <?php echo ($usuario['nombre_rol'] === 'superadmin') ? 'disabled' : ''; ?>>
+                                            <i class="bi bi-person-fill-gear"></i>
+                                        </button>
+>>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
                                         <button type="button" class="btn btn-sm btn-danger" 
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#deleteUserModal"
@@ -551,6 +636,149 @@ if (isset($_GET['error'])) {
 
     <!-- Script de Bootstrap para que funcione el menú hamburguesa -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<<<<<<< HEAD
     <script src="index.js"></script> <!-- Asegúrate que este archivo exista -->
+=======
+    <script src="index.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const tableBody = document.querySelector('table tbody');
+        let debounceTimer;
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const query = searchInput.value;
+                
+                // Actualizar la URL sin recargar la página
+                const url = new URL(window.location);
+                url.searchParams.set('q', query);
+                // Mantenemos el filtro de rol si existe
+                const currentRol = new URLSearchParams(window.location.search).get('rol');
+                if (currentRol) {
+                    url.searchParams.set('rol', currentRol);
+                }
+                window.history.pushState({}, '', url);
+
+                if (query.length === 0 || query.length >= 3) {
+                    fetchUsers(query);
+                }
+            }, 300); // Espera 300ms después de que el usuario deja de escribir
+        });
+
+        function fetchUsers(query) {
+            const rol = new URLSearchParams(window.location.search).get('rol') || 'todos';
+            const fetchUrl = `buscar_usuarios.php?q=${encodeURIComponent(query)}&rol=${rol}`;
+
+            fetch(fetchUrl)
+                .then(response => response.json())
+                .then(data => {
+                    renderTable(data.usuarios);
+                })
+                .catch(error => {
+                    console.error('Error al buscar usuarios:', error);
+                    tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error al cargar los datos.</td></tr>';
+                });
+        }
+
+        function renderTable(usuarios) {
+            tableBody.innerHTML = ''; // Limpiar la tabla
+
+            if (usuarios.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No se encontraron usuarios que coincidan con la búsqueda.</td></tr>';
+                return;
+            }
+
+            const currentUserId = <?php echo $_SESSION['user_id']; ?>;
+
+            usuarios.forEach(usuario => {
+                const estadoBadgeClass = getEstadoBadge(usuario.estado_nombre);
+                const rolBadgeClass = getRolBadge(usuario.nombre_rol);
+
+                const accionesHtml = currentUserId !== parseInt(usuario.id) ? `
+                    <button type="button" class="btn btn-sm btn-info me-2 view-btn" data-bs-toggle="modal" data-bs-target="#viewUserModal" data-user-id="${usuario.id}" title="Ver Detalles"><i class="bi bi-eye-fill"></i></button>
+                    <button type="button" class="btn btn-sm btn-warning me-2 edit-btn" data-bs-toggle="modal" data-bs-target="#editUserModal" data-user-id="${usuario.id}" data-user-name="${usuario.nombre}" data-user-email="${usuario.email}" data-user-role-id="${usuario.role_id}" data-user-status-id="${usuario.id_estado || ''}" title="Editar"><i class="bi bi-pencil-square"></i></button>
+                    <button type="button" class="btn btn-sm btn-secondary me-2 impersonate-btn" onclick="location.href='impersonar_usuario.php?id=${usuario.id}'" title="Suplantar Usuario" ${usuario.nombre_rol === 'superadmin' ? 'disabled' : ''}><i class="bi bi-person-fill-gear"></i></button>
+                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal" data-user-id="${usuario.id}" data-user-name="${usuario.nombre}" title="Eliminar"><i class="bi bi-trash3"></i></button>
+                ` : '';
+
+                const row = `
+                    <tr>
+                        <td>${usuario.nombre}</td>
+                        <td><span class="badge ${estadoBadgeClass}">${ucfirst(usuario.estado_nombre || 'N/A')}</span></td>
+                        <td><span class="badge ${rolBadgeClass}">${ucfirst(usuario.nombre_rol)}</span></td>
+                        <td>${usuario.nombre_rol.toLowerCase() === 'paciente' ? (usuario.nutricionista_nombre || '-') : '-'}</td>
+                        <td>${usuario.email}</td>
+                        <td>${new Date(usuario.creado_en).toLocaleDateString('es-ES')}</td>
+                        <td class="text-center">${accionesHtml}</td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        function getEstadoBadge(estado) {
+            if (estado === 'activo') return 'bg-success';
+            if (estado === 'pendiente') return 'bg-warning text-dark';
+            if (estado === 'baja' || estado === 'inactivo') return 'bg-danger';
+            return 'bg-secondary';
+        }
+
+        function getRolBadge(rol) {
+            if (rol === 'superadmin') return 'bg-danger';
+            if (rol === 'nutricionista') return 'bg-info';
+            return 'bg-secondary';
+        }
+
+        function ucfirst(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+    });
+    </script>
+
+    <?php
+    // Lógica para mostrar notificaciones como "toasts"
+    $toast_mensaje = '';
+    $toast_tipo = '';
+
+    if ($mensaje) {
+        $toast_mensaje = $mensaje;
+        $toast_tipo = $tipo_mensaje;
+    } elseif (isset($_GET['exito']) && $_GET['exito'] === 'admin_restaurado') {
+        $toast_mensaje = 'Has vuelto a tu sesión de Super Administrador.';
+        $toast_tipo = 'success';
+    }
+
+    if ($toast_mensaje):
+    ?>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toastContainer = document.querySelector('.toast-container');
+        const toastMessage = "<?php echo addslashes(htmlspecialchars($toast_mensaje)); ?>";
+        const toastType = "<?php echo $toast_tipo; ?>";
+        
+        const icon = toastType === 'success' ? '<i class="bi bi-check-circle-fill me-2"></i>' : '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+        const toastHTML = `
+            <div class="toast align-items-center text-white bg-${toastType} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${icon}
+                        ${toastMessage}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+
+        toastContainer.innerHTML = toastHTML;
+        const toastEl = toastContainer.querySelector('.toast');
+        const toast = new bootstrap.Toast(toastEl, { delay: 5000 }); // El toast durará 5 segundos
+        toast.show();
+    });
+    </script>
+    <?php endif; ?>
+>>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
 </body>
 </html>

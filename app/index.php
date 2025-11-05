@@ -1,6 +1,21 @@
 <?php
-// Iniciar la sesión para poder manejar mensajes de error
+// Iniciar la sesión para poder manejar mensajes y sesiones
 session_start();
+
+// Primero, verificamos si venimos de un cierre de sesión.
+// Si es así, nos aseguramos de que la sesión esté completamente destruida.
+if (isset($_GET['exito']) && $_GET['exito'] === 'logout') {
+    // Destruir todas las variables de la sesión.
+    $_SESSION = array();
+
+    // Borrar la cookie de sesión.
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
+    }
+
+    session_destroy(); // Destruir la sesión en el servidor.
+}
 
 if (isset($_SESSION['user_id'])) {
     // Si el usuario ya está logueado, redirigirlo a la página correspondiente según su rol
@@ -53,6 +68,9 @@ if (isset($_GET['exito'])) {
 </head>
 <body>
 
+    <!-- Contenedor para las notificaciones (toasts). Debe estar aquí para un posicionamiento global correcto. -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100"></div>
+
     <!-- Header simplificado para la página de login -->
     <header class="navbar navbar-expand-lg shadow-sm navbar-primary bg-primary">
         <div class="container">
@@ -74,14 +92,6 @@ if (isset($_GET['exito'])) {
             <h1 class="form-title">Bienvenido de nuevo</h1>
             <p class="form-subtitle">Ingresa a tu cuenta para continuar</p>
 
-            <?php if ($error): ?>
-                <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
-            <?php endif; ?>
-
-            <?php if ($exito): ?>
-                <div class="success-message"><?php echo htmlspecialchars($exito); ?></div>
-            <?php endif; ?>
-
             <form action="autenticar.php" method="POST">
                 <div class="input-group"><label for="email">Email</label><input type="email" id="email" name="email" class="form-input" required></div>
                 <div class="input-group"><label for="password">Contraseña</label><input type="password" id="password" name="password" class="form-input" required></div>
@@ -96,5 +106,47 @@ if (isset($_GET['exito'])) {
         <p>&copy; 2025 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <?php
+    // Lógica para mostrar notificaciones como "toasts"
+    $toast_mensaje = '';
+    $toast_tipo = '';
+
+    if ($error) {
+        $toast_mensaje = $error;
+        $toast_tipo = 'danger';
+    } elseif ($exito) {
+        $toast_mensaje = $exito;
+        $toast_tipo = 'success';
+    }
+
+    if ($toast_mensaje):
+    ?>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toastContainer = document.querySelector('.toast-container');
+        const toastMessage = "<?php echo addslashes(htmlspecialchars($toast_mensaje)); ?>";
+        const toastType = "<?php echo $toast_tipo; ?>";
+        
+        const icon = toastType === 'success' ? '<i class="bi bi-check-circle-fill me-2"></i>' : '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+        const toastHTML = `
+            <div class="toast align-items-center text-white bg-${toastType} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${icon}
+                        ${toastMessage}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+
+        toastContainer.innerHTML = toastHTML;
+        const toastEl = toastContainer.querySelector('.toast');
+        const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+        toast.show();
+    });
+    </script>
+    <?php endif; ?>
 </body>
 </html>
