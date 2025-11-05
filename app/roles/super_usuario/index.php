@@ -6,8 +6,6 @@ session_start();
 // Si no hay sesión o el rol no es 'superadmin', se redirige al login.
 if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 1) {
     // Corregir ruta relativa: desde app/roles/super_usuario/ para ir al login en app/index.php
-<<<<<<< HEAD
-=======
 
     // Excepción: si estamos suplantando a un usuario, sí permitimos el acceso
     // pero no si intentan acceder directamente al panel de superadmin.
@@ -17,7 +15,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 1) {
         exit;
     }
 
->>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
     header('Location: ../../index.php'); // Redirige a la página de login
     exit;
 }
@@ -34,10 +31,7 @@ $nutricionistas_list = []; // Lista de nutricionistas para el modal
 $paciente_role_id = null; // ID del rol 'paciente'
 $estados_list = []; // Lista de estados para el modal de edición
 $filtro_rol = $_GET['rol'] ?? 'todos'; // Por defecto, mostrar todos
-<<<<<<< HEAD
-=======
 $search_query = trim($_GET['q'] ?? ''); // Obtener el término de búsqueda
->>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
 
 try {
     // Obtener todos los roles e identificar el ID de 'paciente'
@@ -65,27 +59,14 @@ try {
             u.id, u.nombre, u.email, u.creado_en, u.role_id, u.id_estado,
             r.nombre AS nombre_rol,
             e.nombre AS estado_nombre,
-<<<<<<< HEAD
-            un.nombre AS nutricionista_nombre
-=======
             un.nombre AS nutricionista_nombre,
             p.dni
->>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
         FROM usuarios u
         JOIN roles r ON u.role_id = r.id
         LEFT JOIN estados e ON u.id_estado = e.id
         LEFT JOIN pacientes p ON p.id_usuario = u.id
         LEFT JOIN nutricionistas n ON n.id = p.id_nutricionista
         LEFT JOIN usuarios un ON un.id = n.id_usuario";
-<<<<<<< HEAD
-
-    $params = [];
-    // El filtro 'todos' no aplica una cláusula WHERE
-    if ($filtro_rol && $filtro_rol !== 'todos') {
-        // Mapear nombre de filtro a nombre de rol real en BD
-        $rol_buscar = $filtro_rol === 'super_usuario' ? 'superadmin' : $filtro_rol;
-        // Mapear el nombre del rol a su ID
-=======
     
     $where_clauses = [];
     $params = [];
@@ -93,22 +74,15 @@ try {
     // Aplicar filtro por rol
     if ($filtro_rol && $filtro_rol !== 'todos') {
         $rol_buscar = $filtro_rol === 'super_usuario' ? 'superadmin' : $filtro_rol;
->>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
         $stmt_rol_id = $pdo->prepare("SELECT id FROM roles WHERE nombre = ?");
         $stmt_rol_id->execute([$rol_buscar]);
         $rol_id_obj = $stmt_rol_id->fetch();
         if ($rol_id_obj) {
-<<<<<<< HEAD
-            $sql_usuarios .= " WHERE u.role_id = ?";
-=======
             $where_clauses[] = "u.role_id = ?";
->>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
             $params[] = $rol_id_obj['id'];
         }
     }
 
-<<<<<<< HEAD
-=======
     // Aplicar filtro por búsqueda
     if ($search_query !== '') {
         $where_clauses[] = "(u.nombre LIKE ? OR u.email LIKE ? OR p.dni LIKE ?)";
@@ -121,7 +95,6 @@ try {
         $sql_usuarios .= " WHERE " . implode(' AND ', $where_clauses);
     }
 
->>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
     $sql_usuarios .= " ORDER BY u.nombre ASC";
     
     $stmt_usuarios = $pdo->prepare($sql_usuarios);
@@ -248,58 +221,15 @@ if (isset($_GET['error'])) {
 
     <!-- Contenido principal del dashboard -->
     <main class="container my-5">
-<<<<<<< HEAD
-        <?php if ($mensaje): ?>
-        <div class="alert alert-<?php echo $tipo_mensaje; ?> alert-dismissible fade show" role="alert">
-            <?php echo htmlspecialchars($mensaje); ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <?php endif; ?>
-
-        <!-- Accesos Rápidos a Paneles de Rol -->
-        <div class="row mb-4 g-4">
-            <div class="col-lg-6">
-                <div class="card shadow-sm">
-                    <div class="card-body d-flex align-items-center p-3">
-                        <div class="flex-shrink-0 me-3"><i class="bi bi-person-badge-fill fs-2 text-info"></i></div>
-                        <div class="flex-grow-1">
-                            <h5 class="card-title mb-1">Panel de Nutricionistas</h5>
-                            <p class="card-text text-muted small mb-2">Gestionar nutricionistas y sus pacientes.</p>
-                            <a href="../nutricionista/index.php" class="btn btn-sm btn-outline-info"><i class="bi bi-arrow-right-circle me-1"></i>Ir al Panel</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="card shadow-sm">
-                    <div class="card-body d-flex align-items-center p-3">
-                        <div class="flex-shrink-0 me-3"><i class="bi bi-people-fill fs-2 text-secondary"></i></div>
-                        <div class="flex-grow-1">
-                            <h5 class="card-title mb-1">Panel de Pacientes</h5>
-                            <p class="card-text text-muted small mb-2">Consultar la lista de todos los pacientes.</p>
-                            <a href="../paciente/index.php" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-right-circle me-1"></i>Ir al Panel</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-=======
         <!-- Contenedor para las notificaciones (toasts) -->
         <div class="toast-container position-fixed top-0 end-0 p-3"></div>
->>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
         <!-- Tabla de Gestión de Usuarios -->
         <div class="card shadow-sm">
             <div class="card-header bg-dark text-white">
                 <div class="d-flex flex-wrap justify-content-between align-items-center">
-<<<<<<< HEAD
-                    <h2 class="h4 mb-2 mb-md-0">Gestión de Usuarios</h2>
-                    <div class="d-flex flex-wrap gap-2">
-=======
                     <!-- Lado Izquierdo: Buscador y Filtros -->
                     <div class="d-flex flex-wrap align-items-center gap-3">
                         <h2 class="h4 mb-0">Gestión de Usuarios</h2>
->>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
                         <!-- Botones de Filtro -->
                         <div class="btn-group" role="group" aria-label="Filtros de rol">
                             <a href="index.php?rol=todos" class="btn <?php echo $filtro_rol === 'todos' ? 'btn-primary' : 'btn-outline-primary'; ?> btn-sm">Todos</a>
@@ -307,8 +237,6 @@ if (isset($_GET['error'])) {
                             <a href="index.php?rol=nutricionista" class="btn <?php echo $filtro_rol === 'nutricionista' ? 'btn-primary' : 'btn-outline-primary'; ?> btn-sm">Nutricionistas</a>
                             <a href="index.php?rol=paciente" class="btn <?php echo $filtro_rol === 'paciente' ? 'btn-primary' : 'btn-outline-primary'; ?> btn-sm">Pacientes</a>
                         </div>
-<<<<<<< HEAD
-=======
                     </div>
                     <!-- Lado Derecho: Acciones -->
                     <div class="d-flex flex-wrap align-items-center gap-2">
@@ -316,7 +244,6 @@ if (isset($_GET['error'])) {
                         <div class="input-group input-group-sm" style="width: 250px;">
                             <input type="search" id="searchInput" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Buscar por nombre, email, DNI..." value="<?php echo htmlspecialchars($search_query); ?>">
                         </div>
->>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
                             <i class="bi bi-person-plus-fill me-1"></i>
                             Agregar Usuario
@@ -335,11 +262,7 @@ if (isset($_GET['error'])) {
                                 <th>Nutricionista</th>
                                 <th>Email</th>
                                 <th>Fecha de Registro</th>
-<<<<<<< HEAD
-                                <th class="text-center">Acciones</th>
-=======
                                 <th class="text-center" style="width: 180px;">Acciones</th>
->>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
                             </tr>
                         </thead>
                         <tbody>
@@ -398,8 +321,6 @@ if (isset($_GET['error'])) {
                                                 title="Editar">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
-<<<<<<< HEAD
-=======
                                         <!-- Botón para suplantar usuario -->
                                         <button type="button" class="btn btn-sm btn-secondary me-2 impersonate-btn"
                                                 onclick="location.href='impersonar_usuario.php?id=<?php echo $usuario['id']; ?>'"
@@ -407,7 +328,6 @@ if (isset($_GET['error'])) {
                                                 <?php echo ($usuario['nombre_rol'] === 'superadmin') ? 'disabled' : ''; ?>>
                                             <i class="bi bi-person-fill-gear"></i>
                                         </button>
->>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
                                         <button type="button" class="btn btn-sm btn-danger" 
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#deleteUserModal"
@@ -636,9 +556,6 @@ if (isset($_GET['error'])) {
 
     <!-- Script de Bootstrap para que funcione el menú hamburguesa -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<<<<<<< HEAD
-    <script src="index.js"></script> <!-- Asegúrate que este archivo exista -->
-=======
     <script src="index.js"></script>
 
     <script>
@@ -779,6 +696,5 @@ if (isset($_GET['error'])) {
     });
     </script>
     <?php endif; ?>
->>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
 </body>
 </html>

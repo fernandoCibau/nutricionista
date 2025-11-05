@@ -51,20 +51,10 @@ try {
         // 10. Redirigir según el rol del usuario.
         if ($user['role_id'] === 1) { // Suponiendo que 1 es el ID para super usuario
             header('Location: roles/super_usuario/index.php');
-<<<<<<< HEAD
-        } 
-        if ($user['role_id'] === 2) { // Suponiendo que 2 es el ID para nutricionista
-            header('Location: roles/nutricionista/index.php');
-        }
-        if ($user['role_id'] === 3) { // Suponiendo que 3 es el ID para paciente
-            // Aquí puedes redirigir a otros paneles para nutricionistas o pacientes
-            header('Location: roles/paciente/index.php'); // Ejemplo
-=======
         } elseif ($user['role_id'] === 2) { // Suponiendo que 2 es el ID para nutricionista
             header('Location: roles/nutricionista/index.php');
         } elseif ($user['role_id'] === 3) { // Suponiendo que 3 es el ID para paciente
             header('Location: roles/paciente/index.php');
->>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
         }
         exit;
     } else {

@@ -101,23 +101,6 @@ try {
     </header>
 
     <main class="container my-5">
-<<<<<<< HEAD
-        <?php if (isset($_SESSION['user_rol']) && $_SESSION['user_rol'] === 1): ?>
-        <div class="mb-4">
-            <a href="../super_usuario/index.php" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left-circle me-2"></i>Volver al Panel de Super Admin
-            </a>
-        </div>
-        <?php endif; ?>
-
-        <?php if ($mensaje): ?>
-        <div class="alert alert-<?php echo $tipo_mensaje; ?> alert-dismissible fade show" role="alert">
-            <?php echo htmlspecialchars($mensaje); ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <?php endif; ?>
-
-=======
         <?php if (isset($_SESSION['original_admin_id']) && isset($_SESSION['original_admin_nombre'])): ?>
             <div class="alert alert-warning border-warning d-flex justify-content-between align-items-center mb-4" role="alert">
                 <div>
@@ -130,7 +113,6 @@ try {
 
         <!-- Contenedor para las notificaciones (toasts) -->
         <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100"></div>
->>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
         <!-- Tabla de GestiÃ³n de Usuarios -->
         <div class="card shadow-sm">
             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
@@ -442,11 +424,6 @@ try {
         });
     });
     </script>
-<<<<<<< HEAD
-</body>
-</html>
-
-=======
 
     <?php
     // Lógica para mostrar notificaciones como "toasts"
@@ -480,4 +457,3 @@ try {
     <?php endif; ?>
 </body>
 </html>
->>>>>>> ed7aef3 (PRIMERA ENTREGA DE SUPER ADMIN TERMIANDA)
