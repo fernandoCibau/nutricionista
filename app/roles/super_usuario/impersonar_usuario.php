@@ -51,8 +51,17 @@ try {
     $_SESSION['user_rol'] = $target_user['role_id'];
 
     // 8. Redirigir al panel correspondiente del usuario suplantado.
-    // Usamos el script de autenticación para que nos redirija correctamente.
-    header('Location: ../../autenticar.php');
+    switch ($target_user['role_id']) {
+        case 2: // Nutricionista
+            header('Location: ../nutricionista/index.php');
+            break;
+        case 3: // Paciente
+            header('Location: ../paciente/index.php');
+            break;
+        default: // Por si acaso, redirigir al login para que resuelva.
+            header('Location: ../../index.php');
+            break;
+    }
     exit;
 
 } catch (PDOException $e) {

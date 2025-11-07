@@ -84,10 +84,5 @@ if (isset($_GET['error'])) {
         </div>
     </main>
 
-    <!-- Footer con el copyright -->
-    <footer class="login-footer">
-        <p>&copy; 2025 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
-    </footer>
-
 </body>
 </html>

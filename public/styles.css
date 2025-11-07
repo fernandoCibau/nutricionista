@@ -24,13 +24,21 @@ html, body {
     padding: 0;
 }
 
+/* 
+ * Estructura Flex para "Sticky Footer".
+ * El body ocupa toda la altura, el main crece y el footer se pega abajo.
+*/
 body {
     display: flex;
-    flex-direction: column; /* Para que el header y el main se apilen */
-    min-height: 100vh; /* Asegura que el body ocupe al menos toda la altura de la pantalla */
+    flex-direction: column;
+    min-height: 100vh;
     background-color: var(--bg-soft);
     font-family: 'Inter', sans-serif; /* Una fuente moderna y legible */
     color: var(--color-text);
+}
+
+main {
+    flex-grow: 1; /* Permite que el contenido principal crezca y ocupe el espacio disponible */
 }
 
 /* --- Header --- */
@@ -179,6 +187,11 @@ header.navbar-primary .nav-link:hover {
     text-decoration: underline;
 }
 
+/* --- Footer --- */
+footer {
+    flex-shrink: 0; /* Evita que el footer se encoja */
+}
+
 /* --- Botón Principal --- */
 .btn-primary {
     width: 100%;
@@ -224,12 +237,15 @@ header.navbar-primary .nav-link:hover {
 
 /* --- Footer --- */
 .login-footer {
-    flex-shrink: 0;
+    flex-shrink: 0; /* No se encoge */
+    margin-top: auto; /* Empuja el footer al final del espacio disponible (clave para sticky footer) */
     text-align: center;
     padding: 2rem 0;
     color: var(--color-text-muted);
     font-size: 0.9rem;
-    background-color: var(--bg-soft);
+    background-color: var(--bg-card); /* Un fondo blanco para que se distinga un poco */
+    border-top: 1px solid var(--color-border); /* Borde superior para una separación limpia */
+    width: 100%;
 }
 
 .gallery {

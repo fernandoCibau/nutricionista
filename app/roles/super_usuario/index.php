@@ -179,7 +179,7 @@ if (isset($_GET['error'])) {
     <!-- Dependencias de Estilos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="public\styles.css"> <!-- CORRECCIÓN: Usar los estilos generales -->
+    <link rel="stylesheet" href="../../public/styles.css"> <!-- CORRECCIÓN: Usar los estilos generales -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -550,14 +550,13 @@ if (isset($_GET['error'])) {
         </div>
     </div>
 
-    <footer class="text-center text-muted py-4 mt-auto">
+    <!-- Footer con el copyright -->
+    <footer class="login-footer">
         <p>&copy; 2025 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
     </footer>
 
-    <!-- Script de Bootstrap para que funcione el menú hamburguesa -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="index.js"></script>
-
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.getElementById('searchInput');
@@ -666,6 +665,9 @@ if (isset($_GET['error'])) {
     } elseif (isset($_GET['exito']) && $_GET['exito'] === 'admin_restaurado') {
         $toast_mensaje = 'Has vuelto a tu sesión de Super Administrador.';
         $toast_tipo = 'success';
+    } elseif (isset($_GET['exito']) && $_GET['exito'] === 'suplantacion_exitosa') {
+        $toast_mensaje = 'Has iniciado sesión como otro usuario. Para volver, usa el enlace en la parte superior de su panel.';
+        $toast_tipo = 'info';
     }
 
     if ($toast_mensaje):

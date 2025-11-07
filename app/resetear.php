@@ -94,10 +94,5 @@ if (isset($_GET['exito']) && $_GET['exito'] === 'password_actualizada') {
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="login-footer">
-        <p>&copy; 2025 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
-    </footer>
-
 </body>
 </html>

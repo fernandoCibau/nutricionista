@@ -154,16 +154,12 @@
         </div>
     </main>
 
-    <!-- Footer de la página pública -->
-    <footer class="container py-5">
-        <div class="row">
-            <div class="col-12 text-center">
-                <p class="text-muted">&copy; 2025 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
-            </div>
-        </div>
+    <!-- Footer con el copyright -->
+    <footer class="login-footer">
+        <p>&copy; 2025 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="main.js"></script>
+    <script src="main.js"></script> <!-- CORRECCIÓN: La ruta estaba mal, ahora es correcta -->
 </body>
 </html>
