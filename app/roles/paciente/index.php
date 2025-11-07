@@ -161,7 +161,7 @@ if (isset($_GET['error'])) {
     <!-- Header para el panel de usuario -->
     <header class="navbar navbar-expand-lg shadow-sm navbar-primary bg-primary">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
+            <a class="navbar-brand d-flex align-items-center text-white" href="#">
                 <i class="bi bi-heart-pulse fs-4 me-2"></i>
                 <strong>NutriApp - Panel Paciente</strong>
             </a>
@@ -173,21 +173,21 @@ if (isset($_GET['error'])) {
 
             <!-- Menú Colapsable -->
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
+                <ul class="navbar-nav ms-auto align-items-center text-white">
                     <!-- Nombre de usuario en el header -->
-                    <li class="nav-item me-3">
-                        <span class="navbar-text">
-                            <i class="bi bi-person-circle me-1"></i>
+                    <li class="nav-item me-3 text-white">
+                        <span class="navbar-text text-white">
+                            <i class="bi bi-person-circle me-1 text-white"></i>
                             <?php echo $nombre_usuario; ?>
                         </span>
                     </li>
                     <li class="nav-item me-2">
-                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                        <a class="nav-link text-white" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
                             <i class="bi bi-key-fill"></i><span class="ms-1">Cambiar Contraseña</span>
                         </a>
                     </li>
                     <li class="nav-item"> <!-- Botón de cerrar sesión -->
-                        <a class="nav-link logout-link" href="../../logout.php">
+                        <a class="nav-link logout-link text-white" href="../../logout.php">
                             <i class="bi bi-box-arrow-right"></i><span>Cerrar Sesión</span>
                         </a>
                     </li>

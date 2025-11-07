@@ -83,12 +83,14 @@ try {
     </style>
 </head>
 <body>
+    <!-- Header para el panel de usuario -->
     <header class="navbar navbar-expand-lg shadow-sm navbar-primary bg-primary">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center text-white" href="index.php">
                 <i class="bi bi-heart-pulse fs-4 me-2"></i>
                 <strong>NutriApp - Panel Nutricionista</strong>
             </a>
+    <!-- Menú Colapsable -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item"><a class="nav-link text-white active" href="index.php"><i class="bi bi-calendar-event me-1"></i> Calendario</a></li>
