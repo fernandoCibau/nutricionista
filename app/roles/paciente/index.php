@@ -99,6 +99,18 @@ try {
     error_log("Error al obtener receta (recetas): " . $e->getMessage());
 }
 
+// Cargar archivos (PDFs) subidos por el nutricionista para este paciente (tabla `archivos_plan`)
+$archivos_plan = [];
+try {
+    if ($paciente_id !== null) {
+        $af = $pdo->prepare("SELECT id, nombre_archivo, url_archivo, fecha_subida FROM archivos_plan WHERE id_paciente = ? ORDER BY fecha_subida DESC");
+        $af->execute([$paciente_id]);
+        $archivos_plan = $af->fetchAll();
+    }
+} catch (PDOException $e) {
+    error_log("Error al obtener archivos_plan: " . $e->getMessage());
+}
+
 // (estado del paciente ya se obtuvo más arriba en la variable $paciente_estado)
 
 // Manejo de mensajes de éxito y error desde la URL
@@ -351,10 +363,35 @@ if (isset($_GET['error'])) {
                     </div>
                     <div class="card-body">
                         <?php if ($dieta): ?>
-                            <p class="mb-2">Última receta: <?php echo date('d/m/Y', strtotime($dieta['creado_en'])); ?></p>
-                            <a href="descargar_dieta.php?titulo=<?php echo urlencode($dieta['titulo']); ?>&creado_en=<?php echo urlencode($dieta['creado_en']); ?>" class="btn btn-outline-primary">Descargar Dieta</a>
+                            <p class="mb-2">Última receta pública: <?php echo date('d/m/Y', strtotime($dieta['creado_en'])); ?></p>
+                            <a href="descargar_dieta.php?titulo=<?php echo urlencode($dieta['titulo']); ?>&creado_en=<?php echo urlencode($dieta['creado_en']); ?>" class="btn btn-outline-primary">Descargar receta (.txt)</a>
+                        <?php endif; ?>
+
+                        <hr />
+                        <h6 class="mb-2">Archivos del nutricionista</h6>
+                        <?php if (empty($archivos_plan)): ?>
+                            <p class="text-muted">No hay archivos (PDF) asignados a tu plan.</p>
                         <?php else: ?>
-                            <p class="text-muted">Aún no hay recetas públicas disponibles.</p>
+                            <div class="list-group">
+                                <?php foreach ($archivos_plan as $ap): ?>
+                                    <?php
+                                        // Construir URL pública usando APP_BASE (archivo guardado como 'uploads/dietas/xxx.pdf')
+                                        $url = (defined('APP_BASE') ? APP_BASE : '/nutricionista') . '/' . ltrim($ap['url_archivo'], '/');
+                                        $safeName = htmlspecialchars($ap['nombre_archivo'] ?: basename($ap['url_archivo']));
+                                        $dt = date('d/m/Y H:i', strtotime($ap['fecha_subida']));
+                                    ?>
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-semibold"><?php echo $safeName; ?></div>
+                                            <div class="small text-muted"><?php echo $dt; ?></div>
+                                        </div>
+                                        <div class="text-end">
+                                            <a class="btn btn-sm btn-outline-primary me-2" href="<?php echo $url; ?>" target="_blank" download>Descargar</a>
+                                            <a class="btn btn-sm btn-outline-secondary" href="<?php echo $url; ?>" target="_blank">Abrir</a>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
