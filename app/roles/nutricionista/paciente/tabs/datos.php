@@ -66,9 +66,11 @@
         .then(res => {
           msg.className = 'small ' + (res.success ? 'text-success' : 'text-danger');
           msg.textContent = res.message || (res.success ? 'Guardado' : 'Error');
+          if (res && res.success) {
+            window.location.reload();
+          }
         })
         .catch(() => { msg.className = 'small text-danger'; msg.textContent = 'Error de red'; });
     });
   })();
 </script>
-

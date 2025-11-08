@@ -39,6 +39,15 @@ try {
 }
 
 $nombreUsuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
+// Normalizar objetivo cuando viene vacío
+$objetivoPrincipal = (isset($objetivoPrincipal) && trim((string)$objetivoPrincipal) !== '')
+  ? $objetivoPrincipal
+  : '-';
+
+// Pestaña activa por parámetro (evita parpadeo al recargar)
+$allowedTabs = ['pills-historial','pills-consulta','pills-evolucion','pills-comidas','pills-dietas','pills-datos'];
+$currentTab = isset($_GET['tab']) ? (string)$_GET['tab'] : 'pills-historial';
+if (!in_array($currentTab, $allowedTabs, true)) { $currentTab = 'pills-historial'; }
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -67,6 +76,25 @@ $nombreUsuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
     .objective-label { font-size:.85rem; color:#6c757d; }
     .objective-value { font-weight:600; }
   </style>
+  <style>
+    /* Ajustes SOLO móvil para cabecera paciente */
+    @media (max-width: 576px) {
+      .patient-hero .card-body {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .patient-hero .card-body > .text-end {
+        align-self: flex-end; /* pegar a la derecha */
+        text-align: right;
+        margin-top: .5rem;   /* un poco más abajo */
+        width: 100%;         /* ocupar ancho para alinear contenido a la derecha */
+      }
+      .patient-hero .objective-box { margin-bottom: .5rem; }
+      /* botón de alta médica (inyectado por JS) */
+      #btnToggleEstado { margin-top: .25rem; }
+    }
+  </style>
+  <style id="tabs-hide-css">#pills-tabContent{visibility:hidden} #pills-tab{visibility:hidden}</style>
   <link rel="stylesheet" href="../../public/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
@@ -82,11 +110,14 @@ $nombreUsuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
       <a class="navbar-brand d-flex align-items-center text-white" href="index.php">
         <i class="bi bi-heart-pulse fs-4 me-2"></i><strong>NutriApp</strong>
       </a>
-      <div class="collapse navbar-collapse">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto align-items-center">
           <li class="nav-item"><a class="nav-link text-white" href="index.php"><i class="bi bi-calendar-event me-1"></i> Calendario</a></li>
           <li class="nav-item"><a class="nav-link text-white" href="gestionar_pacientes.php"><i class="bi bi-people-fill me-1"></i> Pacientes</a></li>
-          <li class="nav-item ms-3"><span class="navbar-text text-white"><i class="bi bi-person-circle me-1"></i> <?php echo $nombreUsuario; ?></span></li>
+          <li class="nav-item ms-3"><a class="nav-link text-white" href="perfil/index.php" title="Configurar perfil"><i class="bi bi-person-circle me-1"></i> <?php echo $nombreUsuario; ?></a></li>
           <li class="nav-item"><a class="nav-link text-white" href="../../logout.php"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
         </ul>
       </div>
@@ -145,7 +176,7 @@ $nombreUsuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
       </li>
 
       <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="pills-dietas-tab" data-bs-toggle="pill" data-bs-target="#pills-dietas" type="button" role="tab"><i class="bi bi-filetype-pdf me-1"></i> Dietas (PDFs)</button>
+        <button class="nav-link" id="pills-dietas-tab" data-bs-toggle="pill" data-bs-target="#pills-dietas" type="button" role="tab"><i class="bi bi-filetype-pdf me-1"></i> Dietas (PDFs)</button>
       </li> 
       
       <li class="nav-item" role="presentation">
@@ -154,7 +185,7 @@ $nombreUsuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
 
     </ul>
     <div class="tab-content" id="pills-tabContent">
-      <div class="tab-pane fade show active" id="pills-dietas" role="tabpanel"><?php $pacienteId && include __DIR__.'/paciente/tabs/dietas.php'; ?></div>
+      <div class="tab-pane fade" id="pills-dietas" role="tabpanel"><?php $pacienteId && include __DIR__.'/paciente/tabs/dietas.php'; ?></div>
       <div class="tab-pane fade" id="pills-comidas" role="tabpanel"><?php $pacienteId && include __DIR__.'/paciente/tabs/comidas.php'; ?></div>
       <div class="tab-pane fade" id="pills-historial" role="tabpanel"><?php $pacienteId && include __DIR__.'/paciente/tabs/historial.php'; ?></div>
       <div class="tab-pane fade" id="pills-consulta" role="tabpanel"><?php $pacienteId && include __DIR__.'/paciente/tabs/consulta.php'; ?></div>
@@ -164,6 +195,29 @@ $nombreUsuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
   </main>
 
   <script>
+    // Guardar/restaurar la pestaña activa entre recargas (sin parpadeo)
+    document.addEventListener('DOMContentLoaded', function(){
+      try {
+        const pid = <?php echo (int)$pacienteId; ?>;
+        const key = 'vistaPaciente:activeTab:' + pid;
+        const nav = document.getElementById('pills-tab');
+        if (nav) {
+          nav.addEventListener('shown.bs.tab', function(e){
+            const target = e.target && e.target.getAttribute('data-bs-target');
+            if (target) localStorage.setItem(key, target);
+          });
+          const saved = localStorage.getItem(key) || '#pills-historial';
+          if (!localStorage.getItem(key)) { try { localStorage.setItem(key, saved); } catch(_){} }
+          const trigger = document.querySelector(`#pills-tab button[data-bs-target="${saved}"]`);
+          if (trigger && !trigger.classList.contains('active')) {
+            const tab = bootstrap.Tab.getOrCreateInstance(trigger);
+            tab.show();
+          }
+        }
+      } catch (_) {}
+      const hide = document.getElementById('tabs-hide-css'); if (hide) hide.remove();
+    });
+
     (function(){
       // Insertar botÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n corazÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n para cambiar estado
       const headerRight = document.querySelector('.section-card .card-body .text-end');
@@ -173,7 +227,7 @@ $nombreUsuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
       const btn = document.createElement('button');
       btn.id = 'btnToggleEstado';
       btn.type = 'button';
-      btn.className = 'btn btn-sm ' + (estado === 'activo' ? 'btn-danger' : 'btn-outline-danger');
+      btn.className = 'btn btn-sm ' + (estado === 'activo' ? 'btn-success' : 'btn-danger');
       btn.title = (estado === 'activo') ? 'Desactivar paciente' : 'Activar paciente';
       const icon = document.createElement('i');
       icon.id = 'iconToggleEstado';
@@ -183,6 +237,7 @@ $nombreUsuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
       label.textContent = 'Dar Alta médica';
       btn.appendChild(icon);
       btn.appendChild(label);
+      label.textContent = (estado === 'activo') ? 'Dar alta medica' : 'Activar';
       const wrap = document.createElement('div');
       wrap.className = 'mt-2';
       wrap.appendChild(btn);
@@ -204,9 +259,10 @@ $nombreUsuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
               // actualizar UI
               estadoSpan.className = badgeClass(estado);
               estadoSpan.textContent = estado;
-              btn.className = 'btn btn-sm ' + (estado === 'activo' ? 'btn-danger' : 'btn-outline-danger');
+              btn.className = 'btn btn-sm ' + (estado === 'activo' ? 'btn-success' : 'btn-danger');
               icon.className = 'bi ' + (estado === 'activo' ? 'bi-heart-fill' : 'bi-heart');
               btn.title = (estado === 'activo') ? 'Desactivar paciente' : 'Activar paciente';
+              label.textContent = (estado === 'activo') ? 'Dar alta medica' : 'Activar';
             } else {
               alert((res && res.message) || 'No se pudo actualizar el estado');
             }

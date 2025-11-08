@@ -1,6 +1,13 @@
 <?php
 // Espera $pacienteId en el scope
 ?>
+<div id="evolucion-empty" class="card section-card">
+  <div class="card-body text-muted">
+    No hay datos de peso cargados en Historial. Una vez cargues datos, se verá aquí el estado de evolución.
+  </div>
+</div>
+
+<div id="evolucion-content" class="d-none">
 <div class="card section-card mb-3">
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -31,14 +38,19 @@
     </div>
   </div>
 </div>
+</div>
 <script>
   (function(){
+    const content = document.getElementById('evolucion-content');
+    const emptyBox = document.getElementById('evolucion-empty');
     const ctx = document.getElementById('pesoChart');
     if (!ctx) return;
     fetch(`paciente/api/evolucion_peso.php?paciente_id=<?php echo (int)$pacienteId; ?>`)
       .then(r => r.json())
       .then(res => {
-        if (!res.success) return;
+        const hasData = !!(res && res.success && Array.isArray(res.data) && res.data.length);
+        if (!hasData) { if (emptyBox) emptyBox.classList.remove('d-none'); if (content) content.classList.add('d-none'); return; }
+        if (content) content.classList.remove('d-none'); if (emptyBox) emptyBox.classList.add('d-none');
         const data = { labels: res.labels || [], datasets: [{ label: 'Peso (kg)', data: res.data || [], tension: .3, fill: false, borderWidth: 2, pointRadius: 3 }] };
         if (window.Chart) new Chart(ctx, { type: 'line', data, options: { plugins: { legend: { display: true } }, scales: { y: { beginAtZero: false } } } });
         const mr = document.getElementById('medidas-recientes');
@@ -87,7 +99,7 @@
         fd.append('habito_id', id);
         fetch('paciente/api/habitos_eliminar.php', { method: 'POST', body: fd })
           .then(r => r.json())
-          .then(res => { if (res && res.success) loadHabitos(); else alert((res && res.message)||'Error'); })
+          .then(res => { if (res && res.success) { loadHabitos(); window.location.reload(); } else alert((res && res.message)||'Error'); })
           .catch(() => alert('Error de red'));
       });
     }

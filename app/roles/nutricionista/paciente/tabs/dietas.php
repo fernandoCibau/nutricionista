@@ -76,6 +76,7 @@
             msg.textContent = 'PDF subido correctamente';
             form.reset();
             loadList();
+            window.location.reload();
           } else {
             msg.className = 'small text-danger';
             msg.textContent = (res && res.message) || 'Error al subir';
@@ -99,6 +100,7 @@
         .then(res => {
           if (res && res.success) {
             loadList();
+            window.location.reload();
           } else {
             alert((res && res.message) || 'No se pudo eliminar');
           }
