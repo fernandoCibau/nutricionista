@@ -57,34 +57,77 @@ try {
     error_log("Error al obtener turnos: " . $e->getMessage());
 }
 
-// Cargar hábitos asignados (si existe la tabla)
+// Cargar hábitos asignados con estadísticas
 $habitos = [];
 try {
     $check = $pdo->query("SHOW TABLES LIKE 'habitos'");
     if ($check && $check->rowCount() > 0 && $paciente_id !== null) {
-        $hstmt = $pdo->prepare("SELECT id, descripcion, creado_en FROM habitos WHERE id_paciente = ? ORDER BY creado_en DESC");
-        $hstmt->execute([$paciente_id]);
+        // Obtener hábitos con estadísticas de completado
+        $hstmt = $pdo->prepare("
+            SELECT 
+                h.*,
+                COUNT(DISTINCT hc_total.fecha) as veces_completado,
+                COUNT(DISTINCT hc_semana.fecha) as completados_semana,
+                (
+                    SELECT COUNT(DISTINCT hc_hoy.fecha)
+                    FROM habit_completados hc_hoy
+                    WHERE hc_hoy.id_habito = h.id
+                    AND hc_hoy.id_paciente = ?
+                    AND hc_hoy.fecha = CURRENT_DATE
+                ) as completado_hoy,
+                (
+                    WITH RECURSIVE dias AS (
+                        SELECT CURRENT_DATE as fecha
+                        UNION ALL
+                        SELECT DATE_SUB(fecha, INTERVAL 1 DAY)
+                        FROM dias
+                        WHERE fecha > DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)
+                    )
+                    SELECT COUNT(*)
+                    FROM (
+                        SELECT d.fecha
+                        FROM dias d
+                        LEFT JOIN habit_completados hc ON hc.fecha = d.fecha
+                            AND hc.id_habito = h.id
+                            AND hc.id_paciente = ?
+                        WHERE hc.id IS NOT NULL
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM dias d2
+                            LEFT JOIN habit_completados hc2 ON hc2.fecha = d2.fecha
+                                AND hc2.id_habito = h.id
+                                AND hc2.id_paciente = ?
+                            WHERE d2.fecha > d.fecha
+                            AND hc2.id IS NULL
+                            AND d2.fecha <= CURRENT_DATE
+                        )
+                    ) x
+                ) as racha_actual
+            FROM habitos h
+            LEFT JOIN habit_completados hc_total 
+                ON h.id = hc_total.id_habito 
+                AND hc_total.id_paciente = ?
+            LEFT JOIN habit_completados hc_semana 
+                ON h.id = hc_semana.id_habito 
+                AND hc_semana.id_paciente = ?
+                AND hc_semana.fecha BETWEEN DATE_SUB(CURRENT_DATE, INTERVAL 6 DAY) AND CURRENT_DATE
+            WHERE h.id_paciente = ?
+            GROUP BY h.id
+            ORDER BY h.creado_en DESC
+        ");
+        $hstmt->execute([$paciente_id, $paciente_id, $paciente_id, $paciente_id, $paciente_id, $paciente_id]);
         $habitos = $hstmt->fetchAll();
     }
 } catch (PDOException $e) {
     error_log("Error al obtener hábitos: " . $e->getMessage());
 }
 
-// Obtener completados hoy (si existe la tabla)
+// Preparar array de completados hoy para compatibilidad con el código existente
 $completados_hoy = [];
-try {
-    $check2 = $pdo->query("SHOW TABLES LIKE 'habit_completados'");
-    if ($check2 && $check2->rowCount() > 0 && $paciente_id !== null) {
-        $hoy = date('Y-m-d');
-        $cstmt = $pdo->prepare("SELECT id_habito FROM habit_completados WHERE id_paciente = ? AND fecha = ?");
-        $cstmt->execute([$paciente_id, $hoy]);
-        $rows = $cstmt->fetchAll();
-        foreach ($rows as $r) {
-            $completados_hoy[$r['id_habito']] = true;
-        }
+foreach ($habitos as $h) {
+    if ($h['completado_hoy'] > 0) {
+        $completados_hoy[$h['id']] = true;
     }
-} catch (PDOException $e) {
-    error_log("Error al obtener completados de hábitos: " . $e->getMessage());
 }
 
 // Obtener la receta/dieta más reciente (tabla `recetas`) — las recetas están asociadas a nutricionistas,
@@ -396,32 +439,112 @@ if (isset($_GET['error'])) {
                     </div>
                 </div>
                 
-                <!-- Hábitos asignados -->
-                <div class="card shadow-sm mt-3">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h3 class="h6 mb-0">Mis Hábitos</h3>
-                        <small class="text-muted">Marca tu progreso</small>
-                    </div>
-                    <div class="card-body">
+                <!-- Incluir componente de hábitos -->
+                <?php include __DIR__ . '/components/card_habitos.php'; ?>
                         <?php if (empty($habitos)): ?>
                             <p class="text-muted">No tienes hábitos asignados. Contactá a tu nutricionista.</p>
                         <?php else: ?>
-                            <div class="list-group">
+                            <div class="row row-cols-1 g-4">
                                 <?php foreach ($habitos as $hab): ?>
-                                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <div><?php echo nl2br(htmlspecialchars($hab['descripcion'])); ?></div>
-                                            <div class="small text-muted">Asignado: <?php echo date('d/m/Y', strtotime($hab['creado_en'])); ?></div>
-                                        </div>
-                                        <div class="text-end">
-                                            <form action="marcar_habito.php" method="POST" class="d-flex gap-2 align-items-center">
-                                                <input type="hidden" name="id_habito" value="<?php echo $hab['id']; ?>">
-                                                <input type="date" name="fecha" value="<?php echo date('Y-m-d'); ?>" class="form-control form-control-sm">
-                                                <?php $done = !empty($completados_hoy[$hab['id']]); ?>
-                                                <button class="btn btn-sm <?php echo $done ? 'btn-outline-danger' : 'btn-success'; ?>">
-                                                    <?php echo $done ? 'Desmarcar' : 'Marcar cumplido'; ?>
-                                                </button>
-                                            </form>
+                                    <?php 
+                                        $completado = !empty($completados_hoy[$hab['id']]);
+                                        $racha = $hab['racha_actual'] ?? 0;
+                                        $progreso_semana = ($hab['completados_semana'] ?? 0) / 7 * 100;
+                                        $total_completados = $hab['veces_completado'] ?? 0;
+                                        
+                                        $tipo_icono = match($hab['tipo'] ?? 'personalizado') {
+                                            'agua' => 'bi-droplet-fill',
+                                            'ejercicio' => 'bi-bicycle',
+                                            'comida' => 'bi-egg-fried',
+                                            'descanso' => 'bi-moon-stars-fill',
+                                            default => 'bi-check-circle-fill'
+                                        };
+                                        
+                                        $color_progreso = match(true) {
+                                            $progreso_semana >= 80 => 'success',
+                                            $progreso_semana >= 60 => 'info',
+                                            $progreso_semana >= 40 => 'warning',
+                                            default => 'danger'
+                                        };
+                                    ?>
+                                    <div class="col">
+                                        <div class="card h-100 <?php echo $completado ? 'border-success' : ''; ?>">
+                                            <div class="card-body">
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <div class="flex-shrink-0">
+                                                        <i class="bi <?php echo $tipo_icono; ?> fs-4 text-primary"></i>
+                                                    </div>
+                                                    <div class="flex-grow-1 ms-3">
+                                                        <h5 class="card-title mb-0"><?php echo htmlspecialchars($hab['descripcion']); ?></h5>
+                                                        <small class="text-muted">
+                                                            Meta: <?php echo $hab['meta_diaria'] ?? 1; ?> 
+                                                            <?php echo $hab['meta_diaria'] > 1 ? 'veces al día' : 'vez al día'; ?>
+                                                        </small>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <span>Progreso semanal</span>
+                                                        <span class="badge bg-<?php echo $color_progreso; ?>">
+                                                            <?php echo number_format($progreso_semana, 0); ?>%
+                                                        </span>
+                                                    </div>
+                                                    <div class="progress" style="height: 5px;">
+                                                        <div class="progress-bar bg-<?php echo $color_progreso; ?>" 
+                                                             role="progressbar" 
+                                                             style="width: <?php echo $progreso_semana; ?>%" 
+                                                             aria-valuenow="<?php echo $progreso_semana; ?>" 
+                                                             aria-valuemin="0" 
+                                                             aria-valuemax="100"></div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="d-flex justify-content-between mb-3">
+                                                    <div class="text-center">
+                                                        <div class="h4 mb-0"><?php echo $racha; ?></div>
+                                                        <small class="text-muted">Racha actual</small>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="h4 mb-0"><?php echo $total_completados; ?></div>
+                                                        <small class="text-muted">Total completados</small>
+                                                    </div>
+                                                </div>
+
+                                                <form action="marcar_habito.php" method="POST" class="mt-3">
+                                                    <input type="hidden" name="id_habito" value="<?php echo $hab['id']; ?>">
+                                                    <div class="input-group">
+                                                        <input type="date" name="fecha" value="<?php echo date('Y-m-d'); ?>" 
+                                                               class="form-control">
+                                                        <?php if (($hab['meta_diaria'] ?? 1) > 1): ?>
+                                                            <input type="number" name="cantidad" value="1" min="1" 
+                                                                   max="<?php echo $hab['meta_diaria']; ?>" 
+                                                                   class="form-control" style="max-width: 80px;">
+                                                        <?php endif; ?>
+                                                        <button type="submit" 
+                                                                class="btn <?php echo $completado ? 'btn-outline-danger' : 'btn-success'; ?>">
+                                                            <?php if ($completado): ?>
+                                                                <i class="bi bi-x-circle me-1"></i>Desmarcar
+                                                            <?php else: ?>
+                                                                <i class="bi bi-check-circle me-1"></i>Marcar
+                                                            <?php endif; ?>
+                                                        </button>
+                                                    </div>
+                                                </form>
+
+                                                <?php if ($hab['notas'] ?? ''): ?>
+                                                    <div class="mt-2 small">
+                                                        <i class="bi bi-info-circle text-muted"></i>
+                                                        <?php echo nl2br(htmlspecialchars($hab['notas'])); ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="card-footer bg-transparent">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar3"></i>
+                                                    Asignado: <?php echo date('d/m/Y', strtotime($hab['creado_en'])); ?>
+                                                </small>
+                                            </div>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
@@ -632,6 +755,8 @@ if (isset($_GET['error'])) {
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/habitos.js"></script>
+    <script src="js/habitos_calendar.js"></script>
     <script src="index.js"></script>
 </body>
 </html>
