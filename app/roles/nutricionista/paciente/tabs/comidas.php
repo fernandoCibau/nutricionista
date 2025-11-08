@@ -86,7 +86,7 @@
             const hora = fmtTime(d.fecha_hora);
             col.innerHTML = `
               <div class="gallery-tile p-0 border">
-                <img src="${d.url_foto}" alt="comida" style="width:100%;height:100%;object-fit:cover;" onerror="this.remove();">
+                <img src="<?php echo defined('APP_BASE') ? APP_BASE : '/nutricionista'; ?>${d.url_foto}" alt="comida" style="width:100%;height:100%;object-fit:cover;" onerror="console.error('Error loading image:', this.src);">
               </div>
               <div class="mt-1 meal-meta">
                 <span class="fw-semibold">${tipoLabel}</span>

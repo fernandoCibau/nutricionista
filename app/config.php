@@ -11,6 +11,13 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
 
+// Base URL / path where the app is served (desde la raíz del servidor web).
+// Ajusta esto si sirves el proyecto desde otro subdirectorio.
+if (!defined('APP_BASE')) {
+    define('APP_BASE', '/nutricionista');
+}
+define('APP_PUBLIC', APP_BASE . '/public');
+
 // 2. Opciones de PDO para la conexión
 $options = [
     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // Lanza excepciones en errores
