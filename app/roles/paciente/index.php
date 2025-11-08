@@ -16,16 +16,16 @@ $nombre_usuario = htmlspecialchars($_SESSION['user_nombre']);
 // Incluir el archivo de configuración para la conexión a la BD
 require_once '../../config.php';
 
-// Obtener id interno y estado del paciente (tabla `pacientes`) para usar en las queries
+// Obtener id interno del paciente (tabla `pacientes`) para usar en las queries
 $paciente_id = null;
-$paciente_estado = null; // value will be populated later again for compatibility
+$paciente_estado = null; // mantenemos la variable para compatibilidad con otras partes del código
 try {
-    $pstmt = $pdo->prepare("SELECT id, estado FROM pacientes WHERE id_usuario = ? LIMIT 1");
+    // Seleccionamos solo columnas existentes: id.
+    $pstmt = $pdo->prepare("SELECT id FROM pacientes WHERE id_usuario = ? LIMIT 1");
     $pstmt->execute([$_SESSION['user_id']]);
     $prow = $pstmt->fetch();
     if ($prow) {
         $paciente_id = $prow['id'];
-        $paciente_estado = $prow['estado'];
     } else {
         error_log('Paciente no encontrado para user_id=' . $_SESSION['user_id']);
     }
@@ -97,6 +97,18 @@ try {
     $dieta = $stmt->fetch();
 } catch (PDOException $e) {
     error_log("Error al obtener receta (recetas): " . $e->getMessage());
+}
+
+// Cargar archivos (PDFs) subidos por el nutricionista para este paciente (tabla `archivos_plan`)
+$archivos_plan = [];
+try {
+    if ($paciente_id !== null) {
+        $af = $pdo->prepare("SELECT id, nombre_archivo, url_archivo, fecha_subida FROM archivos_plan WHERE id_paciente = ? ORDER BY fecha_subida DESC");
+        $af->execute([$paciente_id]);
+        $archivos_plan = $af->fetchAll();
+    }
+} catch (PDOException $e) {
+    error_log("Error al obtener archivos_plan: " . $e->getMessage());
 }
 
 // (estado del paciente ya se obtuvo más arriba en la variable $paciente_estado)
@@ -240,6 +252,26 @@ if (isset($_GET['error'])) {
                         <small class="text-muted">Comparte tus fotos y comentarios</small>
                     </div>
                     <div class="card-body">
+                        <?php // DEBUG: insertar comentario HTML con información útil para diagnóstico ?>
+                        <?php
+                        $session_uid = $_SESSION['user_id'] ?? 'null';
+                        $patient_id_dbg = $paciente_id ?? 'null';
+                        // Contar filas en diario para todo y para este paciente
+                        try {
+                            $total_diario = (int)$pdo->query("SELECT COUNT(*) FROM diario")->fetchColumn();
+                            $diario_paciente = 0;
+                            if ($patient_id_dbg !== 'null') {
+                                $ct = $pdo->prepare("SELECT COUNT(*) FROM diario WHERE id_paciente = ?");
+                                $ct->execute([(int)$patient_id_dbg]);
+                                $diario_paciente = (int)$ct->fetchColumn();
+                            }
+                        } catch (Throwable $e) {
+                            $total_diario = -1;
+                            $diario_paciente = -1;
+                        }
+                        $first_urls = array_map(function($r){ return $r['url_foto'] ?? null; }, array_slice($comidas,0,5));
+                        echo "<!--DEBUG: session_user_id={$session_uid}; paciente_id={$patient_id_dbg}; comidas_count=" . count($comidas) . "; diario_total={$total_diario}; diario_paciente={$diario_paciente}; urls=" . htmlspecialchars(json_encode($first_urls)) . "-->";
+                        ?>
                         <form action="subir_comida.php" method="POST" enctype="multipart/form-data">
                             <div class="mb-3">
                                 <label for="foto" class="form-label">Foto de la comida</label>
@@ -331,10 +363,35 @@ if (isset($_GET['error'])) {
                     </div>
                     <div class="card-body">
                         <?php if ($dieta): ?>
-                            <p class="mb-2">Última receta: <?php echo date('d/m/Y', strtotime($dieta['creado_en'])); ?></p>
-                            <a href="descargar_dieta.php?titulo=<?php echo urlencode($dieta['titulo']); ?>&creado_en=<?php echo urlencode($dieta['creado_en']); ?>" class="btn btn-outline-primary">Descargar Dieta</a>
+                            <p class="mb-2">Última receta pública: <?php echo date('d/m/Y', strtotime($dieta['creado_en'])); ?></p>
+                            <a href="descargar_dieta.php?titulo=<?php echo urlencode($dieta['titulo']); ?>&creado_en=<?php echo urlencode($dieta['creado_en']); ?>" class="btn btn-outline-primary">Descargar receta (.txt)</a>
+                        <?php endif; ?>
+
+                        <hr />
+                        <h6 class="mb-2">Archivos del nutricionista</h6>
+                        <?php if (empty($archivos_plan)): ?>
+                            <p class="text-muted">No hay archivos (PDF) asignados a tu plan.</p>
                         <?php else: ?>
-                            <p class="text-muted">Aún no hay recetas públicas disponibles.</p>
+                            <div class="list-group">
+                                <?php foreach ($archivos_plan as $ap): ?>
+                                    <?php
+                                        // Construir URL pública usando APP_BASE (archivo guardado como 'uploads/dietas/xxx.pdf')
+                                        $url = (defined('APP_BASE') ? APP_BASE : '/nutricionista') . '/' . ltrim($ap['url_archivo'], '/');
+                                        $safeName = htmlspecialchars($ap['nombre_archivo'] ?: basename($ap['url_archivo']));
+                                        $dt = date('d/m/Y H:i', strtotime($ap['fecha_subida']));
+                                    ?>
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-semibold"><?php echo $safeName; ?></div>
+                                            <div class="small text-muted"><?php echo $dt; ?></div>
+                                        </div>
+                                        <div class="text-end">
+                                            <a class="btn btn-sm btn-outline-primary me-2" href="<?php echo $url; ?>" target="_blank" download>Descargar</a>
+                                            <a class="btn btn-sm btn-outline-secondary" href="<?php echo $url; ?>" target="_blank">Abrir</a>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -388,20 +445,31 @@ if (isset($_GET['error'])) {
                         <?php else: ?>
                             <div class="row g-3">
                                 <?php foreach ($comidas as $c): ?>
-                                    <div class="col-sm-6 col-md-4">
-                                        <div class="card h-100">
-                                            <?php if (!empty($c['url_foto'])): ?>
-                                                <img src="../../..<?php echo htmlspecialchars($c['url_foto']); ?>" class="card-img-top" alt="Foto comida">
+                                    <?php if (!empty($c['url_foto'])): ?>
+                                        <div class="col-6 col-md-4">
+                                            <div class="gallery-tile p-0 border" style="height:200px;overflow:hidden;">
+                                                <img src="<?php echo (defined('APP_BASE') ? APP_BASE : '/nutricionista') . htmlspecialchars($c['url_foto']); ?>" alt="comida" style="width:100%;height:100%;object-fit:cover;">
+                                            </div>
+                                            <div class="mt-1 small text-muted">
+                                                <span class="fw-semibold text-capitalize"><?php echo htmlspecialchars($c['tipo_comida']); ?></span>
+                                                <span class="ms-2"><i class="bi bi-clock"></i> <?php echo date('H:i', strtotime($c['fecha_hora'])); ?></span>
+                                            </div>
+                                            <?php if (!empty($c['detalles'])): ?>
+                                                <p class="mb-0 mt-1 small"><?php echo nl2br(htmlspecialchars($c['detalles'])); ?></p>
                                             <?php endif; ?>
-                                            <div class="card-body">
-                                                <h6 class="card-title text-capitalize"><?php echo htmlspecialchars($c['tipo_comida']); ?></h6>
-                                                <p class="card-text small text-muted"><?php echo date('d/m/Y H:i', strtotime($c['fecha_hora'])); ?></p>
-                                                <?php if (!empty($c['detalles'])): ?>
-                                                    <p class="card-text"><?php echo nl2br(htmlspecialchars($c['detalles'])); ?></p>
-                                                <?php endif; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="col-12">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h6 class="card-title text-capitalize"><?php echo htmlspecialchars($c['tipo_comida']); ?> <small class="text-muted"><?php echo date('d/m/Y H:i', strtotime($c['fecha_hora'])); ?></small></h6>
+                                                    <?php if (!empty($c['detalles'])): ?>
+                                                        <p class="card-text"><?php echo nl2br(htmlspecialchars($c['detalles'])); ?></p>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    <?php endif; ?>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>

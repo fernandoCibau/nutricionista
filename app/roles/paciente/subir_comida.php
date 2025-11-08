@@ -66,14 +66,17 @@ switch ($mime) {
         exit;
 }
 
-$uploadDir = __DIR__ . '/../../public/uploads/comidas';
+// Guardar en la carpeta pública del proyecto (raíz/public/uploads/comidas)
+$uploadDir = __DIR__ . '/../../../public/uploads/comidas';
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
 
-// Guardamos la ruta relativa sin doble slash para que sea consistente
-$relativePath = 'public/uploads/comidas/' . uniqid('comida_') . $ext; // ruta relativa desde la raiz del proyecto
-$fullpath = __DIR__ . '/../../' . $relativePath;
+// Nombre de archivo y rutas
+$filename = uniqid('comida_') . $ext;
+$fullpath = $uploadDir . DIRECTORY_SEPARATOR . $filename;
+// Guardamos la ruta que será accesible desde el navegador (comenzando con '/')
+$relativePath = '/public/uploads/comidas/' . $filename;
 
 if (!move_uploaded_file($file['tmp_name'], $fullpath)) {
     error_log('move_uploaded_file falló para user_id=' . $_SESSION['user_id'] . ' destino=' . $fullpath);
