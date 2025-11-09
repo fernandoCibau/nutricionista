@@ -65,8 +65,8 @@
             <div class="col-lg-6 mx-auto">
                 <p class="lead mb-4">La plataforma todo-en-uno para nutricionistas y pacientes. Simplifica el seguimiento, personaliza planes y alcanza tus metas de salud de forma colaborativa y eficiente.</p>
                 <div class="hero-buttons">
-                    <a href="contactos.php" class="btn btn-primary btn-cta">Solicitar Cita</a>
-                    <a href="nosotros.php" class="btn btn-outline-secondary btn-cta">Sobre Nosotros</a>
+                    <a href="contacto_paciente.php" class="btn btn-primary btn-cta">Solicitar Cita</a>
+                    <a href="contacto_nutricionista.php" class="btn btn-outline-secondary btn-cta">Trabaja con nosotros</a>
                 </div>
             </div>
         </div>
@@ -101,15 +101,15 @@
                     </div>
                 </div>
                 <div class="gallery-item">
-                    <img src="../img/nutri4.jpg" alt="Profesional 4">
+                    <img src="../img/nutri5.webp" alt="Profesional 5">
                     <div class="description">
-                        <p>Lic. Carlos García, enfocado en dietas personalizadas para el control de peso y hábitos saludables.</p>
+                        <p>Lic. Juan Perez, enfocado en dietas profesionales para atletas alto nivel.</p>
                     </div>
                 </div>
                 <div class="gallery-item">
-                    <img src="../img/nutri4.jpg" alt="Profesional 4">
+                    <img src="../img/nutri6.jpg" alt="Profesional 6">
                     <div class="description">
-                        <p>Lic. Carlos García, enfocado en dietas personalizadas para el control de peso y hábitos saludables.</p>
+                        <p>Dra. Carla Martini, especialista en nutrición infantil y a crear hábitos alimenticios saludables desde la niñez.</p>
                     </div>
                 </div>
             </div>
