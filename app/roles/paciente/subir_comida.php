@@ -14,6 +14,7 @@ require_once __DIR__ . '/../../config.php';
 
 $comentario = trim($_POST['comentario'] ?? '');
 $tipo_comida = $_POST['tipo_comida'] ?? '';
+$fecha_comida = $_POST['fecha_comida'] ?? date('Y-m-d');
 
 // Obtener el id interno del paciente (tabla pacientes) a partir del usuario logueado
 $paciente_id = null;
@@ -86,8 +87,10 @@ if (!move_uploaded_file($file['tmp_name'], $fullpath)) {
 
 try {
     // Insertar en la tabla `diario` (id_paciente, fecha_hora, tipo_comida, detalles, url_foto)
-    $stmt = $pdo->prepare("INSERT INTO diario (id_paciente, fecha_hora, tipo_comida, detalles, url_foto) VALUES (?, NOW(), ?, ?, ?)");
-    $stmt->execute([$paciente_id, $tipo_comida, $comentario, '/' . $relativePath]);
+    // Usar la fecha proporcionada por el usuario, combinada con la hora actual
+    $fecha_hora = $fecha_comida . ' ' . date('H:i:s');
+    $stmt = $pdo->prepare("INSERT INTO diario (id_paciente, fecha_hora, tipo_comida, detalles, url_foto) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$paciente_id, $fecha_hora, $tipo_comida, $comentario, '/' . $relativePath]);
     header('Location: index.php?exito=comida_subida');
     exit;
 } catch (PDOException $e) {

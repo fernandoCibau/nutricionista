@@ -16,6 +16,17 @@ $nombre_usuario = htmlspecialchars($_SESSION['user_nombre']);
 // Incluir el archivo de configuración para la conexión a la BD
 require_once '../../config.php';
 
+// Obtener mapeo de estados
+$estados_map = [];
+try {
+    $stmt_estados = $pdo->query("SELECT id, nombre FROM estados");
+    while ($row = $stmt_estados->fetch()) {
+        $estados_map[$row['id']] = $row['nombre'];
+    }
+} catch (PDOException $e) {
+    error_log("Error al obtener estados: " . $e->getMessage());
+}
+
 // Obtener id interno del paciente (tabla `pacientes`) para usar en las queries
 $paciente_id = null;
 $paciente_estado = null; // mantenemos la variable para compatibilidad con otras partes del código
@@ -59,9 +70,13 @@ try {
 $turnos_programados = [];
 try {
     if ($paciente_id !== null) {
-        $stmt = $pdo->prepare("SELECT id, id_nutricionista, id_paciente, fecha_hora, estado, senia, pagado, monto, creado_en FROM turnos WHERE id_paciente = ? AND fecha_hora > NOW() AND estado IN ('pendiente','confirmado','programado') ORDER BY fecha_hora ASC");
+        error_log("DEBUG: Paciente ID para turnos: " . $paciente_id);
+        $sql_turnos = "SELECT t.id, t.id_nutricionista, t.id_paciente, t.fecha_hora, e.nombre AS estado, t.senia, t.pagado, t.monto, t.creado_en FROM turnos t LEFT JOIN estados e ON t.id_estado = e.id WHERE t.id_paciente = ? AND t.fecha_hora > NOW() AND e.nombre IN ('programado','pendiente') ORDER BY t.fecha_hora ASC";
+        error_log("DEBUG: SQL Turnos: " . $sql_turnos);
+        $stmt = $pdo->prepare($sql_turnos);
         $stmt->execute([$paciente_id]);
         $turnos_programados = $stmt->fetchAll();
+        error_log("DEBUG: Turnos programados encontrados: " . count($turnos_programados));
     }
 } catch (PDOException $e) {
     error_log("Error al obtener turnos: " . $e->getMessage());
@@ -371,6 +386,10 @@ if (isset($_GET['error'])) {
                                 <textarea class="form-control" id="comentario" name="comentario" rows="3"></textarea>
                             </div>
                             <div class="mb-3">
+                                <label for="fecha_comida" class="form-label">Fecha de la comida</label>
+                                <input type="date" class="form-control" id="fecha_comida" name="fecha_comida" value="<?php echo date('Y-m-d'); ?>" required>
+                            </div>
+                            <div class="mb-3">
                                 <label for="tipo_comida" class="form-label">Tipo de comida</label>
                                 <select class="form-select" id="tipo_comida" name="tipo_comida" required>
                                     <option value="desayuno">Desayuno</option>
@@ -400,7 +419,7 @@ if (isset($_GET['error'])) {
                                     <li class="list-group-item d-flex justify-content-between align-items-start">
                                         <div>
                                             <div><strong>Fecha:</strong> <?php echo date('d/m/Y H:i', strtotime($t['fecha_hora'])); ?></div>
-                                            <div class="small text-muted">Seña: <?php echo htmlspecialchars($t['senia'] ?? 'N/A'); ?> • Pagado: <?php echo !empty($t['pagado']) ? 'Sí' : 'No'; ?></div>
+                                            <div class="small text-muted">Estado: <?php echo htmlspecialchars(ucfirst($t['estado'])); ?> • Seña: <?php echo htmlspecialchars($t['senia'] ?? 'N/A'); ?> • Pagado: <?php echo !empty($t['pagado']) ? 'Sí' : 'No'; ?></div>
                                         </div>
                                         <div class="text-end">
                                             <form action="cancelar_turno.php" method="POST" onsubmit="return confirm('¿Seguro que deseas cancelar este turno?');" style="display:inline">

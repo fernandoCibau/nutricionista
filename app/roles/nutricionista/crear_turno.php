@@ -64,9 +64,9 @@ if ($conf->fetch()) {
 }
 
 // Insert ajustado al esquema actual (sin columnas estado/monto)
-$ins = $pdo->prepare("INSERT INTO turnos (id_nutricionista, id_paciente, fecha_hora, senia, pagado)
-                      VALUES (?, ?, ?, ?, ?)");
-$ok = $ins->execute([$idNutri, $id_paciente, $fecha_hora, $senia, $pagado]);
+$ins = $pdo->prepare("INSERT INTO turnos (id_nutricionista, id_paciente, fecha_hora, senia, pagado, estado)
+                      VALUES (?, ?, ?, ?, ?, ?)");
+$ok = $ins->execute([$idNutri, $id_paciente, $fecha_hora, $senia, $pagado, 'programado']);
 
 echo json_encode(['success'=>$ok, 'message'=>$ok?'Turno creado':'No se pudo crear el turno']);
 
