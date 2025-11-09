@@ -62,60 +62,25 @@ $habitos = [];
 try {
     $check = $pdo->query("SHOW TABLES LIKE 'habitos'");
     if ($check && $check->rowCount() > 0 && $paciente_id !== null) {
-        // Obtener hábitos con estadísticas de completado
-        $hstmt = $pdo->prepare("
-            SELECT 
-                h.*,
-                COUNT(DISTINCT hc_total.fecha) as veces_completado,
-                COUNT(DISTINCT hc_semana.fecha) as completados_semana,
-                (
-                    SELECT COUNT(DISTINCT hc_hoy.fecha)
-                    FROM habit_completados hc_hoy
-                    WHERE hc_hoy.id_habito = h.id
-                    AND hc_hoy.id_paciente = ?
-                    AND hc_hoy.fecha = CURRENT_DATE
-                ) as completado_hoy,
-                (
-                    WITH RECURSIVE dias AS (
-                        SELECT CURRENT_DATE as fecha
-                        UNION ALL
-                        SELECT DATE_SUB(fecha, INTERVAL 1 DAY)
-                        FROM dias
-                        WHERE fecha > DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY)
-                    )
-                    SELECT COUNT(*)
-                    FROM (
-                        SELECT d.fecha
-                        FROM dias d
-                        LEFT JOIN habit_completados hc ON hc.fecha = d.fecha
-                            AND hc.id_habito = h.id
-                            AND hc.id_paciente = ?
-                        WHERE hc.id IS NOT NULL
-                        AND NOT EXISTS (
-                            SELECT 1
-                            FROM dias d2
-                            LEFT JOIN habit_completados hc2 ON hc2.fecha = d2.fecha
-                                AND hc2.id_habito = h.id
-                                AND hc2.id_paciente = ?
-                            WHERE d2.fecha > d.fecha
-                            AND hc2.id IS NULL
-                            AND d2.fecha <= CURRENT_DATE
-                        )
-                    ) x
-                ) as racha_actual
-            FROM habitos h
-            LEFT JOIN habit_completados hc_total 
-                ON h.id = hc_total.id_habito 
-                AND hc_total.id_paciente = ?
-            LEFT JOIN habit_completados hc_semana 
-                ON h.id = hc_semana.id_habito 
-                AND hc_semana.id_paciente = ?
-                AND hc_semana.fecha BETWEEN DATE_SUB(CURRENT_DATE, INTERVAL 6 DAY) AND CURRENT_DATE
-            WHERE h.id_paciente = ?
-            GROUP BY h.id
-            ORDER BY h.creado_en DESC
-        ");
-        $hstmt->execute([$paciente_id, $paciente_id, $paciente_id, $paciente_id, $paciente_id, $paciente_id]);
+        // Determinar nombres de columna (compatibilidad entre esquemas antiguos/nuevos)
+        $descCol = null;
+        $createdCol = null;
+        $c = $pdo->query("SHOW COLUMNS FROM habitos")->fetchAll(PDO::FETCH_COLUMN);
+        if (in_array('descripcion', $c)) $descCol = 'descripcion';
+        elseif (in_array('nombre', $c)) $descCol = 'nombre';
+
+        if (in_array('creado_en', $c)) $createdCol = 'creado_en';
+        elseif (in_array('creado', $c)) $createdCol = 'creado';
+        elseif (in_array('created_at', $c)) $createdCol = 'created_at';
+
+        // Construir SELECT dinámico
+        $selectDesc = $descCol ? "$descCol AS descripcion" : "'' AS descripcion";
+        $selectCreated = $createdCol ? "$createdCol AS creado_en" : "NULL AS creado_en";
+        $orderBy = $createdCol ? "$createdCol DESC" : "id DESC";
+
+        $sql = "SELECT id, $selectDesc, $selectCreated FROM habitos WHERE id_paciente = ? ORDER BY $orderBy";
+        $hstmt = $pdo->prepare($sql);
+        $hstmt->execute([$paciente_id]);
         $habitos = $hstmt->fetchAll();
     }
 } catch (PDOException $e) {
