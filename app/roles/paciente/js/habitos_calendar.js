@@ -109,7 +109,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     titleEl.textContent = `${titleEl.getAttribute('data-base') || 'Calendario'} — Racha: ${data.racha}`;
                 }
             } else {
-                alert('Error al actualizar. Intente de nuevo.');
+                let errorMsg = 'Error al actualizar. Intente de nuevo.';
+                if (data && data.message) {
+                    errorMsg += `\n\n${data.message}`;
+                }
+                if (data && data.detail) { // For dev/debug
+                    errorMsg += `\n\nDetalle: ${data.detail}`;
+                }
+                alert(errorMsg);
             }
         }).catch(err => {
             console.error(err);

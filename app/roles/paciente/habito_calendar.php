@@ -38,23 +38,52 @@ try {
         exit;
     }
 
-    // Obtener fechas completadas (último año)
-    $q = $pdo->prepare("SELECT fecha FROM habit_completados WHERE id_habito = ? AND id_paciente = ? AND fecha >= DATE_SUB(CURRENT_DATE, INTERVAL 365 DAY)");
-    $q->execute([$id_habito, $paciente_id]);
+    // Verificar si se busca una fecha específica
+    $fecha_especifica = $_GET['fecha_especifica'] ?? null;
+    if ($fecha_especifica) {
+        $q = $pdo->prepare("SELECT fecha FROM habit_completados WHERE id_habito = ? AND id_paciente = ? AND fecha = ?");
+        $q->execute([$id_habito, $paciente_id, $fecha_especifica]);
+    } else {
+        // Obtener fechas completadas (último año)
+        $q = $pdo->prepare("SELECT fecha FROM habit_completados WHERE id_habito = ? AND id_paciente = ? AND fecha >= DATE_SUB(CURRENT_DATE, INTERVAL 365 DAY)");
+        $q->execute([$id_habito, $paciente_id]);
+    }
     $fechas = $q->fetchAll(PDO::FETCH_COLUMN);
 
-    // También calcular racha actual (opcional)
-    $stmtFechas = $pdo->prepare("SELECT fecha FROM habit_completados WHERE id_habito = ? AND id_paciente = ? AND fecha <= ? ORDER BY fecha DESC");
-    $stmtFechas->execute([$id_habito, $paciente_id, date('Y-m-d')]);
+    // También calcular racha actual
+    $stmtFechas = $pdo->prepare("SELECT fecha FROM habit_completados WHERE id_habito = ? AND id_paciente = ? ORDER BY fecha DESC");
+    $stmtFechas->execute([$id_habito, $paciente_id]);
     $fechas_all = $stmtFechas->fetchAll(PDO::FETCH_COLUMN);
+    
     $racha = 0;
-    $expected = date('Y-m-d');
-    foreach ($fechas_all as $f) {
-        if ($f === $expected) {
-            $racha++;
-            $expected = date('Y-m-d', strtotime($expected . ' -1 day'));
-        } else {
-            break;
+    if (count($fechas_all) > 0) {
+        try {
+            $today = new DateTimeImmutable('today');
+            $most_recent_date = DateTimeImmutable::createFromFormat('Y-m-d', $fechas_all[0]);
+
+            if ($most_recent_date !== false) {
+                if ($most_recent_date <= $today) {
+                    $days_diff = $today->diff($most_recent_date)->days;
+
+                    if ($days_diff <= 1) {
+                        $racha = 1;
+                        $expected_date = $most_recent_date;
+                        
+                        for ($i = 1; $i < count($fechas_all); $i++) {
+                            $expected_date = $expected_date->modify('-1 day');
+                            $current_date = DateTimeImmutable::createFromFormat('Y-m-d', $fechas_all[$i]);
+                            if ($current_date && $current_date->format('Y-m-d') === $expected_date->format('Y-m-d')) {
+                                $racha++;
+                            } else {
+                                break; 
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            error_log('Error en calcularRacha en habito_calendar.php: ' . $e->getMessage());
+            $racha = 0;
         }
     }
 

@@ -81,11 +81,14 @@
                                     </div>
                                 </div>
 
-                                <div class="d-flex gap-2 mt-3">
-                                    <form action="marcar_habito.php" method="POST" class="flex-grow-1 d-flex">
+                                <div class="d-flex flex-column gap-2 mt-3">
+                                    <form action="marcar_habito.php" method="POST" class="d-flex gap-2" onsubmit="return actualizarBotonSegunFecha(this)">
                                         <input type="hidden" name="id_habito" value="<?php echo $hab['id']; ?>">
-                                        <input type="date" name="fecha" value="<?php echo date('Y-m-d'); ?>" class="form-control">
-                                        <button type="submit" class="btn <?php echo $completado ? 'btn-outline-danger' : 'btn-success'; ?> ms-2">
+                                        <input type="date" name="fecha" value="<?php echo date('Y-m-d'); ?>" 
+                                               onchange="verificarCompletado(this.form, <?php echo $hab['id']; ?>)"
+                                               class="form-control" style="min-width:120px;max-width:140px;">
+                                        <button type="submit" 
+                                                class="btn <?php echo $completado ? 'btn-outline-danger' : 'btn-success'; ?> flex-grow-1">
                                             <?php if ($completado): ?>
                                                 <i class="bi bi-x-circle me-1"></i>Desmarcar
                                             <?php else: ?>
@@ -96,7 +99,7 @@
 
                                     <!-- Botón para abrir calendario -->
                                     <button type="button" 
-                                            class="btn btn-outline-primary btn-sm btn-open-calendar align-self-start" 
+                                            class="btn btn-outline-primary w-100 btn-open-calendar" 
                                             data-habit-id="<?php echo $hab['id']; ?>" 
                                             data-habit-desc="<?php echo htmlspecialchars($hab['descripcion'], ENT_QUOTES); ?>">
                                         <i class="bi bi-calendar3 me-1"></i>Ver calendario
