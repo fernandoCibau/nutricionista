@@ -44,7 +44,7 @@ try {
         $st_hoy->execute([$idNutricionista]);
         $turnos_hoy = $st_hoy->fetchAll(PDO::FETCH_ASSOC);
 
-        // Obtener pacientes activos (segÃºn usuarios.id_estado -> estados.nombre = 'activo') para el dropdown
+        // Obtener pacientes activos (segÃºn usuarios.id_estado -> estados.nombre = 'activo') para el desplegable
         $sql_pacientes = "
             SELECT p.id, u.nombre
             FROM pacientes p

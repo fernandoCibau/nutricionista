@@ -1,0 +1,114 @@
+[1mdiff --git a/app/config.php b/app/config.php[m
+[1mindex e6a5a05..1678261 100644[m
+[1m--- a/app/config.php[m
+[1m+++ b/app/config.php[m
+[36m@@ -11,13 +11,6 @@[m [mdefine('DB_USER', 'root');[m
+ define('DB_PASS', '');[m
+ define('DB_CHARSET', 'utf8mb4');[m
+ [m
+[31m-// Base URL / path where the app is served (desde la raíz del servidor web).[m
+[31m-// Ajusta esto si sirves el proyecto desde otro subdirectorio.[m
+[31m-if (!defined('APP_BASE')) {[m
+[31m-    define('APP_BASE', '/nutricionista');[m
+[31m-}[m
+[31m-define('APP_PUBLIC', APP_BASE . '/public');[m
+[31m-[m
+ // 2. Opciones de PDO para la conexión[m
+ $options = [[m
+     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // Lanza excepciones en errores[m
+[1mdiff --git a/public/uploads/comidas/comida_690138ee6be71.jpg b/app/public/uploads/comidas/comida_690138ee6be71.jpg[m
+[1msimilarity index 100%[m
+[1mrename from public/uploads/comidas/comida_690138ee6be71.jpg[m
+[1mrename to app/public/uploads/comidas/comida_690138ee6be71.jpg[m
+[1mdiff --git a/public/uploads/comidas/comida_6901390376f85.jpg b/app/public/uploads/comidas/comida_6901390376f85.jpg[m
+[1msimilarity index 100%[m
+[1mrename from public/uploads/comidas/comida_6901390376f85.jpg[m
+[1mrename to app/public/uploads/comidas/comida_6901390376f85.jpg[m
+[1mdiff --git a/public/uploads/comidas/comida_69013e491e0ec.jpg b/app/public/uploads/comidas/comida_69013e491e0ec.jpg[m
+[1msimilarity index 100%[m
+[1mrename from public/uploads/comidas/comida_69013e491e0ec.jpg[m
+[1mrename to app/public/uploads/comidas/comida_69013e491e0ec.jpg[m
+[1mdiff --git a/app/roles/nutricionista/gestionar_pacientes.php b/app/roles/nutricionista/gestionar_pacientes.php[m
+[1mindex 314e71d..9e0e7e4 100644[m
+[1m--- a/app/roles/nutricionista/gestionar_pacientes.php[m
+[1m+++ b/app/roles/nutricionista/gestionar_pacientes.php[m
+[36m@@ -81,14 +81,11 @@[m [m$nombre_usuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');[m
+         <a class="navbar-brand d-flex align-items-center text-white" href="index.php">[m
+             <i class="bi bi-heart-pulse fs-4 me-2"></i><strong>NutriApp</strong>[m
+         </a>[m
+[31m-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">[m
+[31m-            <span class="navbar-toggler-icon"></span>[m
+[31m-        </button>[m
+         <div class="collapse navbar-collapse" id="navbarNav">[m
+             <ul class="navbar-nav ms-auto align-items-center">[m
+                 <li class="nav-item"><a class="nav-link text-white" href="index.php"><i class="bi bi-calendar-event me-1"></i> Calendario</a></li>[m
+                 <li class="nav-item"><a class="nav-link text-white active" href="gestionar_pacientes.php"><i class="bi bi-people-fill me-1"></i> Pacientes</a></li>[m
+[31m-                <li class="nav-item ms-3"><a class="nav-link text-white" href="perfil/index.php" title="Configurar perfil"><i class="bi bi-person-circle me-1"></i> <?php echo $nombre_usuario; ?></a></li>[m
+[32m+[m[32m                <li class="nav-item ms-3"><span class="navbar-text text-white"><i class="bi bi-person-circle me-1"></i> <?php echo $nombre_usuario; ?></span></li>[m
+                 <li class="nav-item"><a class="nav-link logout-link text-white" href="../../logout.php"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>[m
+             </ul>[m
+         </div>[m
+[36m@@ -117,7 +114,7 @@[m [m$nombre_usuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');[m
+                     <thead class="table-dark">[m
+                     <tr>[m
+                         <th>Nombre</th>[m
+[31m-                        <th class="d-none d-sm-table-cell">Email</th>[m
+[32m+[m[32m                        <th>Email</th>[m
+                         <th>Estado</th>[m
+                         <th class="text-center">Acciones</th>[m
+                     </tr>[m
+[36m@@ -206,7 +203,7 @@[m [mdocument.addEventListener('DOMContentLoaded', function () {[m
+ [m
+                 row.innerHTML = `[m
+                     <td>${p.nombre}</td>[m
+[31m-                    <td class=\"d-none d-sm-table-cell\">${p.email}</td>[m
+[32m+[m[32m                    <td>${p.email}</td>[m
+                     <td><span class="badge ${estadoBadge}">${estadoTexto}</span></td>[m
+                     <td class="text-center actions-cell">[m
+                         <button type="button" class="btn btn-sm btn-warning me-2 btn-edit" title="Editar Ficha">[m
+[1mdiff --git a/app/roles/nutricionista/index.php b/app/roles/nutricionista/index.php[m
+[1mindex 80914da..4cc781f 100644[m
+[1m--- a/app/roles/nutricionista/index.php[m
+[1m+++ b/app/roles/nutricionista/index.php[m
+[36m@@ -87,38 +87,32 @@[m [mtry {[m
+         <div class="container">[m
+             <a class="navbar-brand d-flex align-items-center text-white" href="index.php">[m
+                 <i class="bi bi-heart-pulse fs-4 me-2"></i>[m
+[31m-                <strong>NutriApp </strong>[m
+[32m+[m[32m                <strong>NutriApp - Panel Nutricionista</strong>[m
+             </a>[m
+[31m-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">[m
+[31m-                <span class="navbar-toggler-icon"></span>[m
+[31m-            </button>[m
+             <div class="collapse navbar-collapse" id="navbarNav">[m
+                 <ul class="navbar-nav ms-auto align-items-center">[m
+                     <li class="nav-item"><a class="nav-link text-white active" href="index.php"><i class="bi bi-calendar-event me-1"></i> Calendario</a></li>[m
+                     <li class="nav-item"><a class="nav-link text-white" href="gestionar_pacientes.php"><i class="bi bi-people-fill me-1"></i> Pacientes</a></li>[m
+[31m-                    <li class="nav-item ms-3"><a class="nav-link text-white" href="perfil/index.php" title="Configurar perfil"><i class="bi bi-person-circle me-1"></i> <?php echo $nombre_usuario; ?></a></li>[m
+[31m-                    <li class="nav-item"><a class="nav-link logout-link text-white" href="../../logout.php"><i class="bi bi-box-arrow-right"></i><span> Cerrar Sesión</span></a></li>[m
+[32m+[m[32m                    <li class="nav-item ms-3"><span class="navbar-text text-white"><i class="bi bi-person-circle me-1"></i> <?php echo $nombre_usuario; ?></span></li>[m
+[32m+[m[32m                    <li class="nav-item"><a class="nav-link logout-link text-white" href="../../logout.php"><i class="bi bi-box-arrow-right"></i><span> Cerrar Sesion</span></a></li>[m
+                 </ul>[m
+             </div>[m
+         </div>[m
+     </header>[m
+ [m
+     <main class="container my-5">[m
+[31m-        <?php if (isset($_SESSION['user_rol']) && $_SESSION['user_rol'] === 1): ?>[m
+[31m-        <div class="mb-4">[m
+[31m-            <a href="../super_usuario/index.php" class="btn btn-outline-secondary">[m
+[31m-                <i class="bi bi-arrow-left-circle me-2"></i>Volver al Panel de Super Admin[m
+[31m-            </a>[m
+[31m-        </div>[m
+[31m-        <?php endif; ?>[m
+[31m-[m
+[31m-        <?php if ($mensaje): ?>[m
+[31m-        <div class="alert alert-<?php echo $tipo_mensaje; ?> alert-dismissible fade show" role="alert">[m
+[31m-            <?php echo htmlspecialchars($mensaje); ?>[m
+[31m-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>[m
+[31m-        </div>[m
+[32m+[m[32m        <?php if (isset($_SESSION['original_admin_id']) && isset($_SESSION['original_admin_nombre'])): ?>[m
+[32m+[m[32m            <div class="alert alert-warning border-warning d-flex justify-content-between align-items-center mb-4" role="alert">[m
+[32m+[m[32m                <div>[m
+[32m+[m[32m                    <i class="bi bi-person-fill-gear me-2"></i>[m
+[32m+[m[32m                    Estás suplantando a <strong><?php echo htmlspecialchars($_

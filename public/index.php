@@ -27,32 +27,31 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style_header.css">
 </head>
 <body>
-    <!-- Header con estilos de Bootstrap y personalizados -->
-    <header class="navbar navbar-expand-lg shadow-sm navbar-primary bg-primary">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="index.php">
-                <i class="bi bi-heart-pulse fs-4 me-2"></i>
-                <strong>NutriApp</strong>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavPublic" aria-controls="navbarNavPublic" aria-expanded="false" aria-label="Toggle navigation">
+    <!-- Header -->
+    <header class="navbar">
+        <a href="index.php" class="navbar-brand">
+        <i class="bi bi-heart-pulse fs-4 me-2"></i>
+        <strong>NutriApp</strong></a>
+       <button class="navbar-toggler" type="button" >
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNavPublic">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="nosotros.php">Nosotros</a></li>
-                    <li class="nav-item"><a class="nav-link" href="contactos.php">Contacto</a></li>
-                </ul>
-                <ul class="navbar-nav ms-auto align-items-center flex-row">
-                    <?php if (!isset($_SESSION['user_id'])): ?>
-                        <li class="nav-item"><a class="nav-link inicio-link" href="../app/index.php">Iniciar Sesión</a></li>
-                    <?php else: ?>
-                        <li class="nav-item me-3"><a class="nav-link" href="<?php echo $dashboard_link; ?>">Mi Panel</a></li>
-                        <li class="nav-item"><a class="nav-link logout-link" href="../app/logout.php"><i class="bi bi-box-arrow-right"></i><span class="d-none d-sm-inline ms-1">Cerrar Sesión</span></a></li>
-                    <?php endif; ?>
-                </ul>
+        <div class="navbar-contenedor"> 
+            <a href="nosotros.php" class="nav-link">Nosotros</a>
+
+            <div class="desplegable-container">
+                <button id="miBoton" class="nav-link desplegable-btn">
+                    Contacto <span class="caret">▼</span>
+                </button>
+                <div id="miMenu" class="desplegable-content">
+                    <a href="contacto_paciente.php">Soy paciente</a>
+                    <a href="contacto_nutricionista.php">Soy nutricionista</a>
+                </div>
             </div>
+
+            <a href="../app/index.php" class="nav-link">Iniciar Sesión</a>
         </div>
     </header>
     
@@ -65,8 +64,8 @@
             <div class="col-lg-6 mx-auto">
                 <p class="lead mb-4">La plataforma todo-en-uno para nutricionistas y pacientes. Simplifica el seguimiento, personaliza planes y alcanza tus metas de salud de forma colaborativa y eficiente.</p>
                 <div class="hero-buttons">
-                    <a href="contactos.php" class="btn btn-primary btn-cta">Solicitar Cita</a>
-                    <a href="nosotros.php" class="btn btn-outline-secondary btn-cta">Sobre Nosotros</a>
+                    <a href="contacto_paciente.php" class="btn btn-primary btn-cta">Solicitar Cita</a>
+                    <a href="contacto_nutricionista.php" class="btn btn-outline-secondary btn-cta">Trabaja con nosotros</a>
                 </div>
             </div>
         </div>
@@ -101,15 +100,15 @@
                     </div>
                 </div>
                 <div class="gallery-item">
-                    <img src="../img/nutri4.jpg" alt="Profesional 4">
+                    <img src="../img/nutri5.webp" alt="Profesional 5">
                     <div class="description">
-                        <p>Lic. Carlos García, enfocado en dietas personalizadas para el control de peso y hábitos saludables.</p>
+                        <p>Lic. Juan Perez, enfocado en dietas profesionales para atletas alto nivel.</p>
                     </div>
                 </div>
                 <div class="gallery-item">
-                    <img src="../img/nutri4.jpg" alt="Profesional 4">
+                    <img src="../img/nutri6.jpg" alt="Profesional 6">
                     <div class="description">
-                        <p>Lic. Carlos García, enfocado en dietas personalizadas para el control de peso y hábitos saludables.</p>
+                        <p>Dra. Carla Martini, especialista en nutrición infantil y a crear hábitos alimenticios saludables desde la niñez.</p>
                     </div>
                 </div>
             </div>
