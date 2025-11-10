@@ -5,12 +5,15 @@ session_start();
 // 2. Verificar si el usuario estÃ¡ logueado y tiene el rol correcto.
 // Si no hay sesiÃ³n o el rol no es 'nutricionista', se redirige al login.
 // Corregir ruta relativa: desde app/roles/nutri/ para ir al login en app/index.php
-if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 2 && $_SESSION['user_rol'] !== 1) {
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../../index.php');
+    exit;
+} elseif ($_SESSION['user_rol'] !== 2 && !isset($_SESSION['original_admin_id'])) {
     header('Location: ../../index.php'); // Redirige a la pÃ¡gina de login
     exit;
 }
 
-// 2) Datos de sesiÃ³n para UI
+// 2) Datos de sesión para UI
 $nombre_usuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
 
 // 3) ConexiÃ³n a BD
@@ -104,6 +107,15 @@ try {
     </header>
 
     <main class="container my-5">
+         <?php if (isset($_SESSION['original_admin_id'])): ?>
+            <div class="alert alert-warning border-warning d-flex justify-content-between align-items-center mb-4" role="alert">
+                <div>
+                    <i class="bi bi-person-fill-gear me-2"></i>
+                    Estás suplantando a <strong><?php echo htmlspecialchars($_SESSION['user_nombre']); ?></strong>.
+                </div>
+                <a href="../super_usuario/volver_admin.php" class="btn btn-warning fw-bold">Volver a mi sesión (<?php echo htmlspecialchars($_SESSION['original_admin_nombre'] ?? 'Admin'); ?>)</a>
+            </div>
+        <?php endif; ?>
         <?php if (isset($_SESSION['user_rol']) && $_SESSION['user_rol'] === 1): ?>
         <div class="mb-4">
             <a href="../super_usuario/index.php" class="btn btn-outline-secondary">
