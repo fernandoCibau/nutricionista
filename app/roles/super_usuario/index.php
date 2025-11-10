@@ -7,12 +7,26 @@ session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 1) {
     // Corregir ruta relativa: desde app/roles/super_usuario/ para ir al login en app/index.php
 
-    // Excepción: si estamos suplantando a un usuario, sí permitimos el acceso
-    // pero no si intentan acceder directamente al panel de superadmin.
-    // Si hay una sesión original de admin, lo redirigimos a su panel correcto.
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+    // Si hay una sesión de suplantación activa, no se debe poder acceder al panel de superadmin.
+=======
+     // Si hay una sesión de suplantación activa, no se debe poder acceder al panel de superadmin.
+>>>>>>> Stashed changes
+=======
+     // Si hay una sesión de suplantación activa, no se debe poder acceder al panel de superadmin.
+>>>>>>> Stashed changes
+    // Redirigimos al panel del usuario suplantado.
     if (isset($_SESSION['original_admin_id'])) {
-        header('Location: ../../index.php'); // Redirigir a la página de inicio para que se resuelva el rol
-        exit;
+        // El rol actual en la sesión es el del usuario suplantado.
+        switch ($_SESSION['user_rol']) {
+            case 2: // Nutricionista
+                header('Location: ../nutricionista/index.php');
+                exit;
+            case 3: // Paciente
+                header('Location: ../paciente/index.php');
+                exit;
+        }
     }
 
     header('Location: ../../index.php'); // Redirige a la página de login

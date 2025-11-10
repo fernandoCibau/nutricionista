@@ -76,6 +76,9 @@
         .then(res => {
           msg.className = 'small ' + (res.success ? 'text-success' : 'text-danger');
           msg.textContent = res.message || (res.success ? 'Guardado' : 'Error');
+          if (res && res.success) {
+            window.location.reload();
+          }
         })
         .catch(() => { msg.className = 'small text-danger'; msg.textContent = 'Error de red'; });
     });
@@ -96,6 +99,7 @@
             if (res && res.success) {
               habMsg.className='small text-success'; habMsg.textContent='Hábito agregado';
               if (inputHab) inputHab.value='';
+              window.location.reload();
             } else { habMsg.className='small text-danger'; habMsg.textContent=(res && res.message)||'Error'; }
           })
           .catch(()=>{ habMsg.className='small text-danger'; habMsg.textContent='Error de red'; });
@@ -103,4 +107,3 @@
     }
   })();
   </script>
-

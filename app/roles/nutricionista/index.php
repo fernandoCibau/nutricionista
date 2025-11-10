@@ -5,12 +5,15 @@ session_start();
 // 2. Verificar si el usuario estÃ¡ logueado y tiene el rol correcto.
 // Si no hay sesiÃ³n o el rol no es 'nutricionista', se redirige al login.
 // Corregir ruta relativa: desde app/roles/nutri/ para ir al login en app/index.php
-if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 2 && $_SESSION['user_rol'] !== 1) {
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../../index.php');
+    exit;
+} elseif ($_SESSION['user_rol'] !== 2 && !isset($_SESSION['original_admin_id'])) {
     header('Location: ../../index.php'); // Redirige a la pÃ¡gina de login
     exit;
 }
 
-// 2) Datos de sesiÃ³n para UI
+// 2) Datos de sesión para UI
 $nombre_usuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
 
 // 3) ConexiÃ³n a BD
@@ -83,38 +86,66 @@ try {
     </style>
 </head>
 <body>
-    <!-- Header para el panel de usuario -->
     <header class="navbar navbar-expand-lg shadow-sm navbar-primary bg-primary">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center text-white" href="index.php">
                 <i class="bi bi-heart-pulse fs-4 me-2"></i>
-                <strong>NutriApp - Panel Nutricionista</strong>
+                <strong>NutriApp </strong>
             </a>
-    <!-- Menú Colapsable -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item"><a class="nav-link text-white active" href="index.php"><i class="bi bi-calendar-event me-1"></i> Calendario</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="gestionar_pacientes.php"><i class="bi bi-people-fill me-1"></i> Pacientes</a></li>
-                    <li class="nav-item ms-3"><span class="navbar-text text-white"><i class="bi bi-person-circle me-1"></i> <?php echo $nombre_usuario; ?></span></li>
-                    <li class="nav-item"><a class="nav-link logout-link text-white" href="../../logout.php"><i class="bi bi-box-arrow-right"></i><span> Cerrar Sesion</span></a></li>
+                    <li class="nav-item ms-3"><a class="nav-link text-white" href="perfil/index.php" title="Configurar perfil"><i class="bi bi-person-circle me-1"></i> <?php echo $nombre_usuario; ?></a></li>
+                    <li class="nav-item"><a class="nav-link logout-link text-white" href="../../logout.php"><i class="bi bi-box-arrow-right"></i><span> Cerrar Sesión</span></a></li>
                 </ul>
             </div>
         </div>
     </header>
 
     <main class="container my-5">
-        <?php if (isset($_SESSION['original_admin_id']) && isset($_SESSION['original_admin_nombre'])): ?>
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+        <?php if (isset($_SESSION['original_admin_id'])): ?>
+=======
+         <?php if (isset($_SESSION['original_admin_id'])): ?>
+>>>>>>> Stashed changes
+=======
+         <?php if (isset($_SESSION['original_admin_id'])): ?>
+>>>>>>> Stashed changes
             <div class="alert alert-warning border-warning d-flex justify-content-between align-items-center mb-4" role="alert">
                 <div>
                     <i class="bi bi-person-fill-gear me-2"></i>
                     Estás suplantando a <strong><?php echo htmlspecialchars($_SESSION['user_nombre']); ?></strong>.
                 </div>
-                <a href="../super_usuario/volver_admin.php" class="btn btn-warning fw-bold">Volver a mi sesión (<?php echo htmlspecialchars($_SESSION['original_admin_nombre']); ?>)</a>
+                <a href="../super_usuario/volver_admin.php" class="btn btn-warning fw-bold">Volver a mi sesión (<?php echo htmlspecialchars($_SESSION['original_admin_nombre'] ?? 'Admin'); ?>)</a>
             </div>
         <?php endif; ?>
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
-        <!-- Contenedor para las notificaciones (toasts) -->
-        <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100"></div>
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+        <?php if (isset($_SESSION['user_rol']) && $_SESSION['user_rol'] === 1): ?>
+        <div class="mb-4">
+            <a href="../super_usuario/index.php" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left-circle me-2"></i>Volver al Panel de Super Admin
+            </a>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($mensaje): ?>
+        <div class="alert alert-<?php echo $tipo_mensaje; ?> alert-dismissible fade show" role="alert">
+            <?php echo htmlspecialchars($mensaje); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php endif; ?>
+
         <!-- Tabla de GestiÃ³n de Usuarios -->
         <div class="card shadow-sm">
             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
@@ -211,20 +242,34 @@ try {
         const turnoModal = new bootstrap.Modal(document.getElementById('turnoModal'));
         const turnoForm = document.getElementById('turnoForm');
         const turnoIdInput = document.getElementById('turno_id');
-        
+
+        // Ajustes responsive: en celular mostrar solo por día
+        const isMobile = window.matchMedia('(max-width: 576px)').matches;
+        const headerToolbarDesktop = { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' };
+        // En móvil no mostramos botón de vista ("Día")
+        const headerToolbarMobile  = { left: 'prev,next today', center: 'title', right: '' };
+        const initialView = isMobile ? 'timeGridDay' : 'timeGridWeek';
+        const initialHeight = isMobile ? 'auto' : 650;
+
         const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'timeGridWeek',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            },
+            initialView: initialView,
+            headerToolbar: isMobile ? headerToolbarMobile : headerToolbarDesktop,
+            contentHeight: initialHeight,
             events: 'obtener_turnos.php',
             locale: 'es',
             buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Dí­a' },
             slotMinTime: '07:00:00',
             slotMaxTime: '22:00:00',
             selectable: true,
+            windowResize: function() {
+                const mobile = window.matchMedia('(max-width: 576px)').matches;
+                const targetView = mobile ? 'timeGridDay' : 'timeGridWeek';
+                calendar.setOption('headerToolbar', mobile ? headerToolbarMobile : headerToolbarDesktop);
+                calendar.setOption('contentHeight', mobile ? 'auto' : 650);
+                if (calendar.view.type !== targetView) {
+                    calendar.changeView(targetView);
+                }
+            },
             
             select: function(info) {
                 turnoForm.reset();
@@ -426,36 +471,5 @@ try {
         });
     });
     </script>
-
-    <?php
-    // Lógica para mostrar notificaciones como "toasts"
-    if ($mensaje):
-    ?>
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const toastContainer = document.querySelector('.toast-container');
-        const toastMessage = "<?php echo addslashes(htmlspecialchars($mensaje)); ?>";
-        const toastType = "<?php echo $tipo_mensaje; ?>"; // 'success' o 'danger'
-        
-        const icon = toastType === 'success' ? '<i class="bi bi-check-circle-fill me-2"></i>' : '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
-        const toastHTML = `
-            <div class="toast align-items-center text-white bg-${toastType} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body">
-                        ${icon}
-                        ${toastMessage}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            </div>
-        `;
-
-        toastContainer.innerHTML = toastHTML;
-        const toastEl = toastContainer.querySelector('.toast');
-        const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
-        toast.show();
-    });
-    </script>
-    <?php endif; ?>
 </body>
 </html>

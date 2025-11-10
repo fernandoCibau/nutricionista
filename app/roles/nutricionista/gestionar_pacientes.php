@@ -81,11 +81,14 @@ $nombre_usuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
         <a class="navbar-brand d-flex align-items-center text-white" href="index.php">
             <i class="bi bi-heart-pulse fs-4 me-2"></i><strong>NutriApp</strong>
         </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-center">
                 <li class="nav-item"><a class="nav-link text-white" href="index.php"><i class="bi bi-calendar-event me-1"></i> Calendario</a></li>
                 <li class="nav-item"><a class="nav-link text-white active" href="gestionar_pacientes.php"><i class="bi bi-people-fill me-1"></i> Pacientes</a></li>
-                <li class="nav-item ms-3"><span class="navbar-text text-white"><i class="bi bi-person-circle me-1"></i> <?php echo $nombre_usuario; ?></span></li>
+                <li class="nav-item ms-3"><a class="nav-link text-white" href="perfil/index.php" title="Configurar perfil"><i class="bi bi-person-circle me-1"></i> <?php echo $nombre_usuario; ?></a></li>
                 <li class="nav-item"><a class="nav-link logout-link text-white" href="../../logout.php"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
             </ul>
         </div>
@@ -114,7 +117,7 @@ $nombre_usuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
                     <thead class="table-dark">
                     <tr>
                         <th>Nombre</th>
-                        <th>Email</th>
+                        <th class="d-none d-sm-table-cell">Email</th>
                         <th>Estado</th>
                         <th class="text-center">Acciones</th>
                     </tr>
@@ -203,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 row.innerHTML = `
                     <td>${p.nombre}</td>
-                    <td>${p.email}</td>
+                    <td class=\"d-none d-sm-table-cell\">${p.email}</td>
                     <td><span class="badge ${estadoBadge}">${estadoTexto}</span></td>
                     <td class="text-center actions-cell">
                         <button type="button" class="btn btn-sm btn-warning me-2 btn-edit" title="Editar Ficha">
