@@ -18,7 +18,7 @@
                     <?php 
                         $completado = !empty($completados_hoy[$hab['id']]);
                         $racha = $hab['racha_actual'] ?? 0;
-                        $progreso_semana = ($hab['completados_semana'] / 7) * 100;
+                        $progreso_semana = (($hab['completados_semana'] ?? 0) / 7) * 100;
                         $total_completados = $hab['veces_completado'] ?? 0;
                         
                         // Determinar icono basado en el texto del hábito

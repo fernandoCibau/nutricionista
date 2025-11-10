@@ -69,9 +69,36 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.status === 'ok') {
                     // Actualizar la racha en la tarjeta
-                    const rachaContainer = card.querySelector('.text-center:first-child .h4');
+                    const rachaContainer = card.querySelector('.text-center:nth-child(1) .h4');
                     if(rachaContainer) {
                         rachaContainer.textContent = data.racha;
+                    }
+
+                    // Actualizar el total de completados
+                    const totalContainer = card.querySelector('.text-center:nth-child(2) .h4');
+                    if(totalContainer) {
+                        totalContainer.textContent = data.total_completados;
+                    }
+
+                    // Actualizar el progreso semanal
+                    const progressContainer = card.querySelector('.progress-bar');
+                    const progressLabel = card.querySelector('.badge');
+                    if(progressContainer && progressLabel) {
+                        const progreso_semana = (data.completados_semana / 7) * 100;
+                        progressContainer.style.width = `${progreso_semana}%`;
+                        progressContainer.setAttribute('aria-valuenow', progreso_semana);
+                        progressLabel.textContent = `${Math.round(progreso_semana)}%`;
+
+                        // Opcional: Actualizar color de la barra de progreso
+                        const color_progreso = (() => {
+                            if (progreso_semana >= 80) return 'success';
+                            if (progreso_semana >= 60) return 'info';
+                            if (progreso_semana >= 40) return 'warning';
+                            return 'danger';
+                        })();
+                        
+                        progressContainer.className = `progress-bar bg-${color_progreso}`;
+                        progressLabel.className = `badge bg-${color_progreso}`;
                     }
 
                     // Actualizar el botón y el borde de la tarjeta

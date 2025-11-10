@@ -5,17 +5,7 @@ session_start();
 // 2. Verificar si el usuario está logueado y tiene el rol correcto.
 // Si no hay sesión o el rol no es 'superadmin', se redirige al login.
 if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 1) {
-    // Corregir ruta relativa: desde app/roles/super_usuario/ para ir al login en app/index.php
-
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
     // Si hay una sesión de suplantación activa, no se debe poder acceder al panel de superadmin.
-=======
-     // Si hay una sesión de suplantación activa, no se debe poder acceder al panel de superadmin.
->>>>>>> Stashed changes
-=======
-     // Si hay una sesión de suplantación activa, no se debe poder acceder al panel de superadmin.
->>>>>>> Stashed changes
     // Redirigimos al panel del usuario suplantado.
     if (isset($_SESSION['original_admin_id'])) {
         // El rol actual en la sesión es el del usuario suplantado.

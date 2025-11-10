@@ -26,13 +26,7 @@ try {
     // 4. Limpiar las variables de sesión de la suplantación.
     unset($_SESSION['original_admin_id']);
     unset($_SESSION['original_admin_nombre']);
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+
     // Limpiar estado del formulario de creación de usuario para evitar persistencia
     unset($_SESSION['add_user_step']);
     unset($_SESSION['add_user_role_id']);

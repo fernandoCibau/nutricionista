@@ -120,9 +120,29 @@ try {
 
     $pdo->commit();
 
+    // Después de confirmar la transacción, obtener los contadores actualizados
+    // Total de veces completado
+    $stmt_total = $pdo->prepare("SELECT COUNT(*) FROM habit_completados WHERE id_habito = ?");
+    $stmt_total->execute([$id_habito]);
+    $total_completados = $stmt_total->fetchColumn();
+
+    // Completados de la última semana
+    $fecha_inicio_semana = date('Y-m-d', strtotime('-6 days'));
+    $fecha_fin_semana = date('Y-m-d');
+    $stmt_semana = $pdo->prepare("SELECT COUNT(*) FROM habit_completados WHERE id_habito = ? AND fecha BETWEEN ? AND ?");
+    $stmt_semana->execute([$id_habito, $fecha_inicio_semana, $fecha_fin_semana]);
+    $completados_semana = $stmt_semana->fetchColumn();
+
     if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['status' => 'ok', 'action' => $action, 'racha' => $racha_actual, 'debug' => $debug_info]);
+        echo json_encode([
+            'status' => 'ok', 
+            'action' => $action, 
+            'racha' => $racha_actual, 
+            'total_completados' => $total_completados,
+            'completados_semana' => $completados_semana,
+            'debug' => $debug_info
+        ]);
     } else {
         header('Location: index.php#habitos');
     }
