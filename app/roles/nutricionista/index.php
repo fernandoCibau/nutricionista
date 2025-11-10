@@ -214,7 +214,7 @@ try {
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                         <button type="button" id="btnCancelarTurno" class="btn btn-danger">Cancelar Turno</button>
-                        <button type="submit" id="btnGuardarTurno" class="btn btn-primary">Guardar</button>
+                        <button type="button" id="btnGuardarTurno" class="btn btn-primary">Guardar</button>
                     </div>
                 </form>
             </div>
@@ -306,8 +306,7 @@ try {
         });
 
         // Formulario del Modal
-        turnoForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+        document.getElementById('btnGuardarTurno').addEventListener('click', function() {
             const formData = new FormData(turnoForm);
             const url = formData.get('turno_id') ? 'modificar_turno.php' : 'crear_turno.php';
 
