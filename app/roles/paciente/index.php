@@ -71,7 +71,7 @@ $turnos_programados = [];
 try {
     if ($paciente_id !== null) {
         error_log("DEBUG: Paciente ID para turnos: " . $paciente_id);
-        $sql_turnos = "SELECT t.id, t.id_nutricionista, t.id_paciente, t.fecha_hora, e.nombre AS estado, t.senia, t.pagado, t.monto, t.creado_en FROM turnos t LEFT JOIN estados e ON t.id_estado = e.id WHERE t.id_paciente = ? AND t.fecha_hora > NOW() AND e.nombre IN ('programado','pendiente') ORDER BY t.fecha_hora ASC";
+        $sql_turnos = "SELECT t.id, t.id_nutricionista, t.id_paciente, t.fecha_hora, e.nombre AS estado, t.senia, t.pagado, t.monto, t.creado_en FROM turnos t LEFT JOIN estados e ON t.id_estado = e.id WHERE t.id_paciente = ? AND t.fecha_hora > NOW() AND e.nombre IN ('programado','pendiente','confirmado') ORDER BY t.fecha_hora ASC";
         error_log("DEBUG: SQL Turnos: " . $sql_turnos);
         $stmt = $pdo->prepare($sql_turnos);
         $stmt->execute([$paciente_id]);

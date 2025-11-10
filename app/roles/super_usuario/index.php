@@ -231,9 +231,11 @@ if (isset($_GET['error'])) {
         <div class="card shadow-sm">
             <div class="card-header bg-dark text-white">
                 <div class="d-flex flex-wrap justify-content-between align-items-center">
-                    <!-- Lado Izquierdo: Buscador y Filtros -->
-                    <div class="d-flex flex-wrap align-items-center gap-3">
-                        <h2 class="h4 mb-0">Gestión de Usuarios</h2>
+                    <!-- Lado Izquierdo: Título -->
+                    <h2 class="h4 mb-0">Gestión de Usuarios</h2>
+                    
+                    <!-- Lado Derecho: Controles -->
+                    <div class="d-flex flex-wrap align-items-center gap-2">
                         <!-- Botones de Filtro -->
                         <div class="btn-group" role="group" aria-label="Filtros de rol">
                             <a href="index.php?rol=todos" class="btn <?php echo $filtro_rol === 'todos' ? 'btn-primary' : 'btn-outline-primary'; ?> btn-sm">Todos</a>
@@ -241,9 +243,6 @@ if (isset($_GET['error'])) {
                             <a href="index.php?rol=nutricionista" class="btn <?php echo $filtro_rol === 'nutricionista' ? 'btn-primary' : 'btn-outline-primary'; ?> btn-sm">Nutricionistas</a>
                             <a href="index.php?rol=paciente" class="btn <?php echo $filtro_rol === 'paciente' ? 'btn-primary' : 'btn-outline-primary'; ?> btn-sm">Pacientes</a>
                         </div>
-                    </div>
-                    <!-- Lado Derecho: Acciones -->
-                    <div class="d-flex flex-wrap align-items-center gap-2">
                         <!-- Campo de Búsqueda -->
                         <div class="input-group input-group-sm" style="width: 250px;">
                             <input type="search" id="searchInput" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Buscar por nombre, email, DNI..." value="<?php echo htmlspecialchars($search_query); ?>">
@@ -306,38 +305,40 @@ if (isset($_GET['error'])) {
                                     <td class="text-center">
                                         <!-- Ocultar botones para el propio superadmin para evitar auto-eliminación -->
                                         <?php if ($_SESSION['user_id'] !== $usuario['id']): ?>
-                                        <button type="button" class="btn btn-sm btn-info me-2 view-btn"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#viewUserModal"
-                                                data-user-id="<?php echo $usuario['id']; ?>"
-                                                data-user-role-name="<?php echo htmlspecialchars($usuario['nombre_rol']); ?>"
-                                                title="Ver Detalles">
-                                            <i class="bi bi-eye-fill"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-warning me-2 edit-btn" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#editUserModal"
-                                                data-user-id="<?php echo $usuario['id']; ?>"
-                                                data-user-name="<?php echo htmlspecialchars($usuario['nombre']); ?>"
-                                                data-user-email="<?php echo htmlspecialchars($usuario['email']); ?>"
-                                                data-user-role-id="<?php echo $usuario['role_id']; ?>"
-                                                data-user-status-id="<?php echo htmlspecialchars($usuario['id_estado'] ?? ''); ?>"
-                                                title="Editar">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </button>
-                                        <!-- Botón para suplantar usuario -->
-                                        <button type="button" class="btn btn-sm btn-secondary me-2 impersonate-btn"
-                                                onclick="location.href='impersonar_usuario.php?id=<?php echo $usuario['id']; ?>'"
-                                                title="Suplantar Usuario"
-                                                <?php echo ($usuario['nombre_rol'] === 'superadmin') ? 'disabled' : ''; ?>>
-                                            <i class="bi bi-person-fill-gear"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-danger" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#deleteUserModal"
-                                                data-user-id="<?php echo $usuario['id']; ?>"
-                                                data-user-name="<?php echo htmlspecialchars($usuario['nombre']); ?>"
-                                                title="Eliminar"><i class="bi bi-trash3"></i></button>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button type="button" class="btn btn-sm btn-info view-btn"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#viewUserModal"
+                                                    data-user-id="<?php echo $usuario['id']; ?>"
+                                                    data-user-role-name="<?php echo htmlspecialchars($usuario['nombre_rol']); ?>"
+                                                    title="Ver Detalles">
+                                                <i class="bi bi-eye-fill"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-warning edit-btn" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#editUserModal"
+                                                    data-user-id="<?php echo $usuario['id']; ?>"
+                                                    data-user-name="<?php echo htmlspecialchars($usuario['nombre']); ?>"
+                                                    data-user-email="<?php echo htmlspecialchars($usuario['email']); ?>"
+                                                    data-user-role-id="<?php echo $usuario['role_id']; ?>"
+                                                    data-user-status-id="<?php echo htmlspecialchars($usuario['id_estado'] ?? ''); ?>"
+                                                    title="Editar">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                            <!-- Botón para suplantar usuario -->
+                                            <button type="button" class="btn btn-sm btn-secondary impersonate-btn"
+                                                    onclick="location.href='impersonar_usuario.php?id=<?php echo $usuario['id']; ?>'"
+                                                    title="Suplantar Usuario"
+                                                    <?php echo ($usuario['nombre_rol'] === 'superadmin') ? 'disabled' : ''; ?>>
+                                                <i class="bi bi-person-fill-gear"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteUserModal"
+                                                    data-user-id="<?php echo $usuario['id']; ?>"
+                                                    data-user-name="<?php echo htmlspecialchars($usuario['nombre']); ?>"
+                                                    title="Eliminar"><i class="bi bi-trash3"></i></button>
+                                        </div>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
