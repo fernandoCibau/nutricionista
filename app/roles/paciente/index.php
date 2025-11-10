@@ -213,21 +213,17 @@ if (isset($_GET['error'])) {
         <!-- Contenedor para las notificaciones (toasts) -->
         <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100"></div>
 
-<<<<<<< Updated upstream
-        <?php if (isset($_SESSION['original_admin_id'])): ?>
-=======
        <?php if (isset($_SESSION['original_admin_id'])): ?>
->>>>>>> Stashed changes
+       <?php if (isset($_SESSION['original_admin_id'])): ?>
+
             <div class="alert alert-warning border-warning d-flex justify-content-between align-items-center mb-4" role="alert">
                 <div>
                     <i class="bi bi-person-fill-gear me-2"></i>
                     Estás suplantando a <strong><?php echo htmlspecialchars($_SESSION['user_nombre']); ?></strong>.
                 </div>
-<<<<<<< Updated upstream
                 <a href="../super_usuario/volver_admin.php" class="btn btn-warning fw-bold">Volver a mi sesión (<?php echo htmlspecialchars($_SESSION['original_admin_nombre'] ?? 'Admin'); ?>)</a>
-=======
-                 <a href="../super_usuario/volver_admin.php" class="btn btn-warning fw-bold">Volver a mi sesión (<?php echo htmlspecialchars($_SESSION['original_admin_nombre'] ?? 'Admin'); ?>)</a>
->>>>>>> Stashed changes
+                <a href="../super_usuario/volver_admin.php" class="btn btn-warning fw-bold">Volver a mi sesión (<?php echo htmlspecialchars($_SESSION['original_admin_nombre'] ?? 'Admin'); ?>)</a>
+
             </div>
         <?php elseif (isset($_SESSION['original_nutri_id'])): ?>
             <div class="alert alert-info border-info d-flex justify-content-between align-items-center mb-4" role="alert">

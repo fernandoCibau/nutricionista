@@ -7,11 +7,8 @@ session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 1) {
     // Corregir ruta relativa: desde app/roles/super_usuario/ para ir al login en app/index.php
 
-<<<<<<< Updated upstream
-    // Si hay una sesión de suplantación activa, no se debe poder acceder al panel de superadmin.
-=======
      // Si hay una sesión de suplantación activa, no se debe poder acceder al panel de superadmin.
->>>>>>> Stashed changes
+
     // Redirigimos al panel del usuario suplantado.
     if (isset($_SESSION['original_admin_id'])) {
         // El rol actual en la sesión es el del usuario suplantado.
@@ -43,7 +40,12 @@ $estados_list = []; // Lista de estados para el modal de edición
 $filtro_rol = $_GET['rol'] ?? 'todos'; // Por defecto, mostrar todos
 $search_query = trim($_GET['q'] ?? ''); // Obtener el término de búsqueda
 
+$provincias = []; // Inicializar array de provincias
 try {
+    // Obtener todas las provincias
+    $stmt_provincias = $pdo->query("SELECT id, nombre FROM provincias ORDER BY nombre ASC");
+    $provincias = $stmt_provincias->fetchAll(PDO::FETCH_ASSOC);
+
     // Obtener todos los roles e identificar el ID de 'paciente'
     $stmt_all_roles = $pdo->query("SELECT id, nombre FROM roles");
     $all_roles = $stmt_all_roles->fetchAll(PDO::FETCH_ASSOC);
@@ -53,7 +55,7 @@ try {
         }
     }
 
-    // Obtener todos los usuarios con rol 'nutricionista' para el dropdown
+    // Obtener todos los usuarios con rol 'nutricionista' para el desplegable
     $stmt_nutricionistas = $pdo->prepare("SELECT u.id, u.nombre FROM usuarios u JOIN roles r ON u.role_id = r.id WHERE r.nombre = 'nutricionista' ORDER BY u.nombre ASC");
     $stmt_nutricionistas->execute();
     $nutricionistas_list = $stmt_nutricionistas->fetchAll(PDO::FETCH_ASSOC);
@@ -111,7 +113,7 @@ try {
     $stmt_usuarios->execute($params);
     $usuarios = $stmt_usuarios->fetchAll();
 
-    // Consulta para obtener todos los roles (para el dropdown del modal)
+    // Consulta para obtener todos los roles (para el desplegable del modal)
     $sql_roles = "SELECT id, nombre FROM roles ORDER BY nombre ASC";
     $stmt_roles = $pdo->query($sql_roles);
     $roles = $stmt_roles->fetchAll();
@@ -419,9 +421,29 @@ if (isset($_GET['error'])) {
                                 <label for="add-user-name" class="form-label">Nombre Completo</label>
                                 <input type="text" class="form-control" id="add-user-name" name="user_name">
                             </div>
+                            <?php if (empty($provincias)): ?>
+                                <div class="alert alert-warning" role="alert">
+                                    No se encontraron provincias en la base de datos. Por favor, agregue provincias para poder seleccionar una localidad.
+                                </div>
+                            <?php endif; ?>
                             <div class="mb-3">
                                 <label for="add-user-email" class="form-label">Email</label>
                                 <input type="email" class="form-control" id="add-user-email" name="user_email">
+                            </div>
+                            <div class="mb-3">
+                                <label for="add-user-provincia" class="form-label">Provincia</label>
+                                <select class="form-select" id="add-user-provincia" name="user_provincia_id">
+                                    <option value="" selected disabled>-- Elige una provincia --</option>
+                                    <?php foreach ($provincias as $provincia): ?>
+                                        <option value="<?php echo $provincia['id']; ?>"><?php echo htmlspecialchars($provincia['nombre']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="add-user-localidad" class="form-label">Localidad</label>
+                                <select class="form-select" id="add-user-localidad" name="user_localidad_id" disabled>
+                                    <option value="" selected disabled>-- Elige una localidad --</option>
+                                </select>
                             </div>
                             <div class="mb-3">
                                 <label for="add-user-password" class="form-label">Contraseña</label>

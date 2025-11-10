@@ -338,3 +338,71 @@ footer {
 .hero-buttons .btn {
     flex-grow: 1;
 }
+
+/* Estilos para el menú desplegable personalizado */
+/* --- Reseteo básico --- */
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f4f4f4; /* Color de fondo para la página */
+}
+
+/* --- 1. La Barra de Navegación (El fondo azul) --- */
+.navbar {
+    background-color: var(--color-primary); /* El color azul primario de Bootstrap */
+    padding: 10px 0; /* Espaciado vertical */
+    border-bottom: 1px solid #0a58ca;
+}
+
+/* --- 2. El Contenedor (El Flexbox) --- */
+.navbar-container {
+    max-width: 1200px; /* Ancho máximo del contenido */
+    margin: 0 auto;    /* Centra el contenedor */
+    padding: 0 20px;   /* Espacio en los bordes para pantallas más chicas */
+
+    display: flex;                 /* ¡ACTIVA FLEXBOX! */
+    justify-content: space-between; /* Empuja izq y der a los extremos */
+    align-items: center;           /* Centra todo verticalmente */
+}
+
+/* --- 3. Grupos Izquierda y Derecha --- */
+.navbar-left {
+    display: flex;         /* Hijos en horizontal */
+    align-items: center;   /* Alinear verticalmente */
+}
+.navbar-right {
+    display: flex;         /* Hijos en horizontal */
+    align-items: center;   /* Alinear verticalmente */
+}
+
+/* --- 4. El Logo/Marca (NutriApp) --- */
+.navbar-brand {
+    color: white;
+    text-decoration: none;
+    font-size: 1.75rem; /* Letra grande */
+    font-weight: 700;   /* Negrita */
+    margin-right: 25px; /* Espacio entre el logo y los links */
+}
+
+/* --- 5. Los Links de Navegación (Todos) --- */
+.nav-link {
+    color: white;
+    text-decoration: none;
+    font-size: 1rem;
+    padding: 8px 12px;  /* Área de clic */
+    border-radius: 6px; /* Bordes redondeados para el 'active' */
+    margin-left: 5px;   /* Separación entre links */
+}
+
+/* --- 6. El Link "Activo" (El botón de Contacto) --- */
+.nav-link.active {
+    background-color: #f8f9fa; /* Fondo gris claro */
+    color: #212529;            /* Texto oscuro */
+    border: 1px solid #b6b6b6; /* Borde sutil */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* Sombra suave */
+}
+
+/* --- 7. Efecto Hover (opcional) --- */
+.nav-link:not(.active):hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Resaltado leve al pasar el mouse */
+}

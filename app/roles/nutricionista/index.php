@@ -47,7 +47,7 @@ try {
         $st_hoy->execute([$idNutricionista]);
         $turnos_hoy = $st_hoy->fetchAll(PDO::FETCH_ASSOC);
 
-        // Obtener pacientes activos (segÃºn usuarios.id_estado -> estados.nombre = 'activo') para el dropdown
+        // Obtener pacientes activos (segÃºn usuarios.id_estado -> estados.nombre = 'activo') para el desplegable
         $sql_pacientes = "
             SELECT p.id, u.nombre
             FROM pacientes p
@@ -107,11 +107,9 @@ try {
     </header>
 
     <main class="container my-5">
-<<<<<<< Updated upstream
         <?php if (isset($_SESSION['original_admin_id'])): ?>
-=======
-         <?php if (isset($_SESSION['original_admin_id'])): ?>
->>>>>>> Stashed changes
+        <?php if (isset($_SESSION['original_admin_id'])): ?>
+      
             <div class="alert alert-warning border-warning d-flex justify-content-between align-items-center mb-4" role="alert">
                 <div>
                     <i class="bi bi-person-fill-gear me-2"></i>
@@ -120,10 +118,7 @@ try {
                 <a href="../super_usuario/volver_admin.php" class="btn btn-warning fw-bold">Volver a mi sesión (<?php echo htmlspecialchars($_SESSION['original_admin_nombre'] ?? 'Admin'); ?>)</a>
             </div>
         <?php endif; ?>
-<<<<<<< Updated upstream
 
-=======
->>>>>>> Stashed changes
         <?php if (isset($_SESSION['user_rol']) && $_SESSION['user_rol'] === 1): ?>
         <div class="mb-4">
             <a href="../super_usuario/index.php" class="btn btn-outline-secondary">
