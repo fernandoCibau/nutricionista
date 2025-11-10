@@ -43,7 +43,7 @@
                     ?>
                     <div class="col">
                         <div class="card h-100 <?php echo $completado ? 'border-success' : ''; ?>">
-                            <div class="card-body">
+                            <div class="card-body" style="min-height: 320px;">
                                 <div class="d-flex align-items-center mb-3">
                                     <div class="flex-shrink-0">
                                         <i class="bi <?php echo $icono; ?> fs-4 text-primary"></i>
@@ -82,13 +82,13 @@
                                 </div>
 
                                 <div class="d-flex flex-column gap-2 mt-3">
-                                    <form action="marcar_habito.php" method="POST" class="d-flex gap-2" onsubmit="return actualizarBotonSegunFecha(this)">
+                                    <form action="marcar_habito.php" method="POST" class="d-flex flex-column flex-md-row gap-2 align-items-center" onsubmit="return actualizarBotonSegunFecha(this)">
                                         <input type="hidden" name="id_habito" value="<?php echo $hab['id']; ?>">
-                                        <input type="date" name="fecha" value="<?php echo date('Y-m-d'); ?>" 
+                                        <input type="date" name="fecha" value="<?php echo date('Y-m-d'); ?>"
                                                onchange="verificarCompletado(this.form, <?php echo $hab['id']; ?>)"
                                                class="form-control" style="min-width:120px;max-width:140px;">
-                                        <button type="submit" 
-                                                class="btn <?php echo $completado ? 'btn-outline-danger' : 'btn-success'; ?> flex-grow-1">
+                                        <button type="submit"
+                                                class="btn <?php echo $completado ? 'btn-outline-danger' : 'btn-success'; ?> mx-auto">
                                             <?php if ($completado): ?>
                                                 <i class="bi bi-x-circle me-1"></i>Desmarcar
                                             <?php else: ?>
