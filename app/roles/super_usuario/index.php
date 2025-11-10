@@ -8,6 +8,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 1) {
     // Corregir ruta relativa: desde app/roles/super_usuario/ para ir al login en app/index.php
 
      // Si hay una sesión de suplantación activa, no se debe poder acceder al panel de superadmin.
+
     // Redirigimos al panel del usuario suplantado.
     if (isset($_SESSION['original_admin_id'])) {
         // El rol actual en la sesión es el del usuario suplantado.
