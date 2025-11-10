@@ -20,6 +20,8 @@ $email = trim($_POST['user_email'] ?? '');
 $password = $_POST['user_password'] ?? '';
 $role_id = filter_var($_POST['user_role_id'] ?? '', FILTER_VALIDATE_INT);
 $nutricionista_user_id = filter_var($_POST['nutricionista_id'] ?? null, FILTER_VALIDATE_INT);
+$provincia_id = filter_var($_POST['user_provincia_id'] ?? null, FILTER_VALIDATE_INT);
+$localidad_id = filter_var($_POST['user_localidad_id'] ?? null, FILTER_VALIDATE_INT);
 
 // Requeridos: nombre, email y rol. La contraseña puede autogenerarse.
 if ($nombre === '' || $email === '' || !$role_id) {
@@ -50,7 +52,8 @@ try {
     $newUserId = (int)$pdo->lastInsertId();
 
     if ((int)$role_id === 2) {
-        $pdo->prepare('INSERT INTO nutricionistas (id_usuario) VALUES (?)')->execute([$newUserId]);
+        $pdo->prepare('INSERT INTO nutricionistas (id_usuario, id_provincia, id_localidad) VALUES (?, ?, ?)')
+            ->execute([$newUserId, $provincia_id, $localidad_id]);
     }
 
     if ((int)$role_id === 3 && $nutricionista_user_id) {
@@ -58,7 +61,8 @@ try {
         $nutriId->execute([$nutricionista_user_id]);
         $nutriTableId = $nutriId->fetchColumn();
         if ($nutriTableId) {
-            $pdo->prepare('INSERT INTO pacientes (id_usuario, id_nutricionista) VALUES (?, ?)')->execute([$newUserId, $nutriTableId]);
+            $pdo->prepare('INSERT INTO pacientes (id_usuario, id_nutricionista, id_provincia, id_localidad) VALUES (?, ?, ?, ?)')
+                ->execute([$newUserId, $nutriTableId, $provincia_id, $localidad_id]);
         }
     }
 

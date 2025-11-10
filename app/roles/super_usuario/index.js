@@ -273,32 +273,64 @@ document.addEventListener('DOMContentLoaded', function () {
             updateWizard();
         });
 
-        // Resetear el wizard cuando el modal se cierra
-        const addUserModal = document.getElementById('addUserModal');
-        addUserModal.addEventListener('hidden.bs.modal', function () {
-            currentStep = 1;
-            addUserForm.reset();
-            updateWizard();
-        });
-
-        // Hacer que al hacer clic en la fila del nutricionista se seleccione el radio
-        document.querySelectorAll('.nutri-row').forEach(row => {
-            row.addEventListener('click', function() {
-                const radio = this.querySelector('input[type="radio"]');
-                if (radio) {
-                    radio.checked = true;
+                // Resetear el wizard cuando el modal se cierra
+                const addUserModal = document.getElementById('addUserModal');
+                addUserModal.addEventListener('hidden.bs.modal', function () {
+                    currentStep = 1;
+                    addUserForm.reset();
+                    updateWizard();
+                });
+        
+                // Hacer que al hacer clic en la fila del nutricionista se seleccione el radio
+                document.querySelectorAll('.nutri-row').forEach(row => {
+                    row.addEventListener('click', function() {
+                        const radio = this.querySelector('input[type="radio"]');
+                        if (radio) {
+                            radio.checked = true;
+                        }
+                    });
+                });
+        
+                // Iniciar el wizard
+                updateWizard();
+        
+                // Event listener para provincia y localidad dentro del modal
+                const provinciaSelect = document.getElementById('add-user-provincia');
+                const localidadSelect = document.getElementById('add-user-localidad');
+        
+                if (provinciaSelect && localidadSelect) {
+                    provinciaSelect.addEventListener('change', function() {
+                        const provinciaId = this.value;
+                        localidadSelect.disabled = true;
+                        localidadSelect.innerHTML = '<option value="" selected disabled>-- Elige una localidad --</option>';
+        
+                        if (provinciaId) {
+                            console.log('Fetching localidades for provinciaId:', provinciaId);
+                            fetch(`../../public/get_localidades.php?provincia_id=${provinciaId}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    console.log('Received data for localidades:', data);
+                                    if (data.error) {
+                                        console.error(data.error);
+                                    } else {
+                                        localidadSelect.disabled = false;
+                                        data.forEach(localidad => {
+                                            const option = document.createElement('option');
+                                            option.value = localidad.id;
+                                            option.textContent = localidad.nombre;
+                                            localidadSelect.appendChild(option);
+                                        });
+                                    }
+                                })
+                                .catch(error => console.error('Error fetching localidades:', error));
+                        }
+                    });
                 }
-            });
-        });
-
-        // Iniciar el wizard
-        updateWizard();
-    }
-
-    /**
-     * Función para escapar HTML y prevenir ataques XSS.
-     * @param {string} str La cadena a escapar.
-     * @returns {string} La cadena escapada.
+            }
+        
+            /**
+             * Función para escapar HTML y prevenir ataques XSS.
+             * @param {string} str La cadena a escapar.     * @returns {string} La cadena escapada.
      */
     function escapeHTML(str) {
         if (typeof str !== 'string') return '';
