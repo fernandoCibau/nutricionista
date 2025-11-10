@@ -8,7 +8,11 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 1) {
     // Corregir ruta relativa: desde app/roles/super_usuario/ para ir al login en app/index.php
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     // Si hay una sesión de suplantación activa, no se debe poder acceder al panel de superadmin.
+=======
+     // Si hay una sesión de suplantación activa, no se debe poder acceder al panel de superadmin.
+>>>>>>> Stashed changes
 =======
      // Si hay una sesión de suplantación activa, no se debe poder acceder al panel de superadmin.
 >>>>>>> Stashed changes

@@ -27,7 +27,10 @@ try {
     unset($_SESSION['original_admin_id']);
     unset($_SESSION['original_admin_nombre']);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
     // Limpiar estado del formulario de creación de usuario para evitar persistencia

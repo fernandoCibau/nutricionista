@@ -108,7 +108,11 @@ try {
 
     <main class="container my-5">
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         <?php if (isset($_SESSION['original_admin_id'])): ?>
+=======
+         <?php if (isset($_SESSION['original_admin_id'])): ?>
+>>>>>>> Stashed changes
 =======
          <?php if (isset($_SESSION['original_admin_id'])): ?>
 >>>>>>> Stashed changes
@@ -121,7 +125,10 @@ try {
             </div>
         <?php endif; ?>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         <?php if (isset($_SESSION['user_rol']) && $_SESSION['user_rol'] === 1): ?>
