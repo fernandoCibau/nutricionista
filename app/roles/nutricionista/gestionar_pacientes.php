@@ -88,7 +88,7 @@ $nombre_usuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
             <ul class="navbar-nav ms-auto align-items-center">
                 <li class="nav-item"><a class="nav-link text-white" href="index.php"><i class="bi bi-calendar-event me-1"></i> Calendario</a></li>
                 <li class="nav-item"><a class="nav-link text-white active" href="gestionar_pacientes.php"><i class="bi bi-people-fill me-1"></i> Pacientes</a></li>
-                <li class="nav-item ms-3"><a class="nav-link text-white" href="perfil/index.php" title="Configurar perfil"><i class="bi bi-person-circle me-1"></i> <?php echo $nombre_usuario; ?></a></li>
+                <li class="nav-item ms-3"><span class="nav-link text-white" title="Perfil"><i class="bi bi-person-circle me-1"></i> <?php echo $nombre_usuario; ?></span></li>
                 <li class="nav-item"><a class="nav-link logout-link text-white" href="../../logout.php"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
             </ul>
         </div>

@@ -48,9 +48,13 @@ try {
     // Obtener todos los roles e identificar el ID de 'paciente'
     $stmt_all_roles = $pdo->query("SELECT id, nombre FROM roles");
     $all_roles = $stmt_all_roles->fetchAll(PDO::FETCH_ASSOC);
+    $nutricionista_role_id = null;
     foreach ($all_roles as $r) {
-        if (strtolower($r['nombre']) === 'paciente') {
+        $nombreRol = strtolower($r['nombre']);
+        if ($nombreRol === 'paciente') {
             $paciente_role_id = $r['id'];
+        } elseif ($nombreRol === 'nutricionista') {
+            $nutricionista_role_id = $r['id'];
         }
     }
 
@@ -252,7 +256,7 @@ if (isset($_GET['error'])) {
                         </div>
                         <!-- Campo de Búsqueda -->
                         <div class="input-group input-group-sm" style="width: 250px;">
-                            <input type="search" id="searchInput" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Buscar por nombre, email, DNI..." value="<?php echo htmlspecialchars($search_query); ?>">
+                            <input type="search" id="searchInput" class="form-control form-control-sm bg-white text-dark" placeholder="Buscar por nombre, email, DNI..." value="<?php echo htmlspecialchars($search_query); ?>">
                         </div>
                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
                             <i class="bi bi-person-plus-fill me-1"></i>
@@ -373,6 +377,7 @@ if (isset($_GET['error'])) {
                             <div class="mb-3">
                                 <!-- Campo oculto para el ID del rol paciente, se usará en JS -->
                                 <input type="hidden" id="paciente-role-id" value="<?php echo $paciente_role_id; ?>">
+                                <input type="hidden" id="nutricionista-role-id" value="<?php echo $nutricionista_role_id; ?>">
                                 <label for="add-user-role" class="form-label">Rol</label>
                                 <select class="form-select" id="add-user-role" name="user_role_id" required>
                                     <option value="" selected disabled>-- Elige un rol --</option>
@@ -430,20 +435,22 @@ if (isset($_GET['error'])) {
                                 <label for="add-user-email" class="form-label">Email</label>
                                 <input type="email" class="form-control" id="add-user-email" name="user_email">
                             </div>
-                            <div class="mb-3">
-                                <label for="add-user-provincia" class="form-label">Provincia</label>
-                                <select class="form-select" id="add-user-provincia" name="user_provincia_id">
-                                    <option value="" selected disabled>-- Elige una provincia --</option>
-                                    <?php foreach ($provincias as $provincia): ?>
-                                        <option value="<?php echo $provincia['id']; ?>"><?php echo htmlspecialchars($provincia['nombre']); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="add-user-localidad" class="form-label">Localidad</label>
-                                <select class="form-select" id="add-user-localidad" name="user_localidad_id" disabled>
-                                    <option value="" selected disabled>-- Elige una localidad --</option>
-                                </select>
+                            <div id="add-user-ubicacion-block">
+                                <div class="mb-3">
+                                    <label for="add-user-provincia" class="form-label">Provincia</label>
+                                    <select class="form-select" id="add-user-provincia" name="user_provincia_id">
+                                        <option value="" selected disabled>-- Elige una provincia --</option>
+                                        <?php foreach ($provincias as $provincia): ?>
+                                            <option value="<?php echo $provincia['id']; ?>"><?php echo htmlspecialchars($provincia['nombre']); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="add-user-localidad" class="form-label">Localidad</label>
+                                    <select class="form-select" id="add-user-localidad" name="user_localidad_id" disabled>
+                                        <option value="" selected disabled>-- Elige una localidad --</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label for="add-user-password" class="form-label">Contraseña</label>
@@ -457,7 +464,7 @@ if (isset($_GET['error'])) {
                         <button type="button" class="btn btn-primary" id="addUserBtnNext">Siguiente</button>
                         <button type="submit" class="btn btn-primary" id="addUserBtnCreate" style="display: none;">Crear Usuario</button>
                     </div>
-                </form>
+</form>
             </div>
         </div>
     </div>
@@ -494,8 +501,8 @@ if (isset($_GET['error'])) {
                             </select>
                         </div>
 
-                        <!-- Campo de Estado (solo visible si el rol es paciente o nutricionista) -->
-                        <div class="mb-3" id="edit-status-container" style="display: none;">
+                        <!-- Campo de Estado: visible para todos los roles (incluido superadmin) -->
+                        <div class="mb-3" id="edit-status-container">
                             <label for="edit-user-status-id" class="form-label">Estado</label>
                             <select class="form-select" id="edit-user-status-id" name="user_status_id">
                                 <option value="">-- Sin Cambiar --</option>
@@ -505,15 +512,7 @@ if (isset($_GET['error'])) {
                             </select>
                         </div>
 
-                        <!-- Estado Clínico del Paciente (solo visible si el rol es paciente) -->
-                        <div class="mb-3" id="edit-paciente-estado-container" style="display: none;">
-                            <label for="edit-paciente-estado" class="form-label">Estado clínico del paciente</label>
-                            <select class="form-select" id="edit-paciente-estado" name="paciente_estado">
-                                <option value="">-- Sin Cambiar --</option>
-                                <option value="activo">Activo</option>
-                                <option value="alta">Alta</option>
-                            </select>
-                        </div>
+                        <!-- Estado clínico del paciente eliminado por requerimiento -->
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -588,6 +587,34 @@ if (isset($_GET['error'])) {
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Prefill Edit User modal, including Estado for cualquier rol (incl. superadmin)
+    document.addEventListener('DOMContentLoaded', function(){
+      const editModalEl = document.getElementById('editUserModal');
+      if (!editModalEl) return;
+      editModalEl.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        if (!button) return;
+        const id    = button.getAttribute('data-user-id') || '';
+        const name  = button.getAttribute('data-user-name') || '';
+        const email = button.getAttribute('data-user-email') || '';
+        const role  = button.getAttribute('data-user-role-id') || '';
+        const status= button.getAttribute('data-user-status-id') || '';
+
+        const idInput   = document.getElementById('edit-user-id');
+        const nameInput = document.getElementById('edit-user-name');
+        const emailInput= document.getElementById('edit-user-email');
+        const roleSel   = document.getElementById('edit-user-role');
+        const statusSel = document.getElementById('edit-user-status-id');
+
+        if (idInput) idInput.value = id;
+        if (nameInput) nameInput.value = name;
+        if (emailInput) emailInput.value = email;
+        if (roleSel) roleSel.value = String(role);
+        if (statusSel) statusSel.value = String(status);
+      });
+    });
+    </script>
     <script src="index.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -684,7 +711,33 @@ if (isset($_GET['error'])) {
             return str.charAt(0).toUpperCase() + str.slice(1);
         }
     });
-    </script>
+</script>
+<script>
+// Toggle de campos Provincia/Localidad según rol seleccionado
+document.addEventListener('DOMContentLoaded', function(){
+  const roleSel = document.getElementById('add-user-role');
+  const ubicBlock = document.getElementById('add-user-ubicacion-block');
+  const pacienteRoleId = document.getElementById('paciente-role-id')?.value;
+  const nutriRoleId = document.getElementById('nutricionista-role-id')?.value;
+  const provinciaSel = document.getElementById('add-user-provincia');
+  const localidadSel = document.getElementById('add-user-localidad');
+
+  function updateUbicacionVisibility(){
+    const r = roleSel?.value || '';
+    const isNutri = nutriRoleId && String(r) === String(nutriRoleId);
+    if (ubicBlock) {
+      ubicBlock.style.display = isNutri ? '' : 'none';
+    }
+    if (!isNutri) {
+      if (provinciaSel) provinciaSel.selectedIndex = 0;
+      if (localidadSel) { localidadSel.selectedIndex = 0; localidadSel.disabled = true; }
+    }
+  }
+
+  roleSel?.addEventListener('change', updateUbicacionVisibility);
+  updateUbicacionVisibility();
+});
+</script>
 
     <?php
     // Lógica para mostrar notificaciones como "toasts"

@@ -341,6 +341,40 @@ footer {
     flex-grow: 1;
 }
 
+/* Turnos (panel paciente) */
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* Tarjetas minimalistas para turnos */
+.turno-item {
+    border: 1px solid var(--color-border);
+    border-left-width: 4px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    background-color: var(--bg-card);
+    box-shadow: var(--shadow-card);
+}
+.turno-item:hover {
+    box-shadow: var(--shadow-card-hover);
+}
+/* Variantes suaves por estado */
+.turno-item.is-programado {
+    border-left-color: #0d6efd;
+    background-color: rgba(13,110,253,0.06);
+}
+.turno-item.is-pendiente {
+    border-left-color: #ffc107;
+    background-color: rgba(255,193,7,0.08);
+}
+.turno-item.is-confirmado {
+    border-left-color: #198754;
+    background-color: rgba(25,135,84,0.08);
+}
+
 /* Estilos para el menú desplegable personalizado */
 /* --- Reseteo básico --- */
 body {

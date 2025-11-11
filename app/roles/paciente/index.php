@@ -71,7 +71,21 @@ $turnos_programados = [];
 try {
     if ($paciente_id !== null) {
         error_log("DEBUG: Paciente ID para turnos: " . $paciente_id);
-        $sql_turnos = "SELECT t.id, t.id_nutricionista, t.id_paciente, t.fecha_hora, e.nombre AS estado, t.senia, t.pagado, t.monto, t.creado_en FROM turnos t LEFT JOIN estados e ON t.id_estado = e.id WHERE t.id_paciente = ? AND t.fecha_hora > NOW() AND e.nombre IN ('programado','pendiente','confirmado') ORDER BY t.fecha_hora ASC";
+        $sql_turnos = "SELECT 
+                t.id,
+                t.id_nutricionista,
+                t.id_paciente,
+                t.fecha_hora,
+                COALESCE(e.nombre, 'programado') AS estado,
+                t.senia,
+                t.pagado,
+                t.creado_en
+            FROM turnos t
+            LEFT JOIN estados e ON t.id_estado = e.id
+            WHERE t.id_paciente = ?
+              AND t.fecha_hora > NOW()
+              AND (e.nombre IN ('programado','pendiente','confirmado') OR t.id_estado IS NULL)
+            ORDER BY t.fecha_hora ASC";
         error_log("DEBUG: SQL Turnos: " . $sql_turnos);
         $stmt = $pdo->prepare($sql_turnos);
         $stmt->execute([$paciente_id]);
@@ -360,7 +374,7 @@ if (isset($_GET['error'])) {
             <div class="col-md-6">
                 <div class="card shadow-sm">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h3 class="h5 mb-0">Registrar Comida</h3>
+                        <h3 class="h5 mb-0"><i class="bi bi-camera text-primary me-2"></i>Registrar Comida</h3>
                         <small class="text-muted">Comparte tus fotos y comentarios</small>
                     </div>
                     <div class="card-body">
@@ -418,31 +432,32 @@ if (isset($_GET['error'])) {
             <div class="col-md-6">
                 <div class="card shadow-sm">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h3 class="h5 mb-0">Turnos Programados</h3>
+                        <h3 class="h5 mb-0"><i class="bi bi-calendar-check text-primary me-2"></i>Turnos Programados</h3>
                     </div>
                     <div class="card-body">
                         <?php if (!empty($turnos_programados)): ?>
                             <ul class="list-group list-group-flush">
                                 <?php foreach ($turnos_programados as $t): ?>
-                                    <li class="list-group-item d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <div><strong>Fecha:</strong> <?php echo date('d/m/Y H:i', strtotime($t['fecha_hora'])); ?></div>
-                                            <div class="small text-muted">Estado: <?php echo htmlspecialchars(ucfirst($t['estado'])); ?> • Seña: <?php echo htmlspecialchars($t['senia'] ?? 'N/A'); ?> • Pagado: <?php echo !empty($t['pagado']) ? 'Sí' : 'No'; ?></div>
-                                        </div>
-                                        <div class="text-end">
-                                            <form action="cancelar_turno.php" method="POST" onsubmit="return confirm('¿Seguro que deseas cancelar este turno?');" style="display:inline">
-                                                <input type="hidden" name="fecha_hora" value="<?php echo htmlspecialchars($t['fecha_hora']); ?>">
-                                                <input type="hidden" name="id_nutricionista" value="<?php echo htmlspecialchars($t['id_nutricionista']); ?>">
-                                                <button class="btn btn-sm btn-danger">Cancelar</button>
-                                            </form>
-                                            <!-- Reprogramar: mostrar formulario pequeño -->
-                                            <button class="btn btn-sm btn-secondary ms-2" type="button" onclick="document.getElementById('reprog-<?php echo $t['id']; ?>').classList.toggle('d-none')">Reprogramar</button>
-                                            <div id="reprog-<?php echo $t['id']; ?>" class="mt-2 d-none">
-                                                <form action="reprogramar_turno.php" method="POST" class="d-flex gap-2 align-items-center">
-                                                    <input type="hidden" name="turno_id" value="<?php echo $t['id']; ?>">
-                                                    <input type="datetime-local" name="nueva_fecha" class="form-control form-control-sm" required>
-                                                    <button class="btn btn-sm btn-primary">Enviar</button>
-                                                </form>
+                                    <?php
+                                        $estadoLower = strtolower((string)($t['estado'] ?? 'programado'));
+                                        $dot = 'primary';
+                                        if ($estadoLower === 'confirmado') { $dot = 'success'; }
+                                        elseif ($estadoLower === 'pendiente') { $dot = 'warning'; }
+                                        $pagado = !empty($t['pagado']);
+                                        $senia = isset($t['senia']) ? (float)$t['senia'] : 0.0;
+                                    ?>
+                                    <li class="list-group-item px-3 py-3 turno-item is-<?php echo $estadoLower; ?>">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="status-dot bg-<?php echo $dot; ?> me-2"></span>
+                                                    <span class="fw-semibold"><?php echo date('d/m/Y H:i', strtotime($t['fecha_hora'])); ?></span>
+                                                </div>
+                                                <div class="text-muted small mt-1">
+                                                    Estado: <?php echo htmlspecialchars(ucfirst($estadoLower)); ?>
+                                                    <?php if ($senia > 0): ?> · Seña: $<?php echo number_format($senia, 2, ',', '.'); ?><?php endif; ?>
+                                                    · Pagado: <?php echo $pagado ? 'Sí' : 'No'; ?>
+                                                </div>
                                             </div>
                                         </div>
                                     </li>
@@ -475,7 +490,7 @@ if (isset($_GET['error'])) {
 
                 <div class="card shadow-sm mt-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h3 class="h6 mb-0">Dieta</h3>
+                        <h3 class="h6 mb-0"><i class="bi bi-journal-medical text-primary me-2"></i>Dieta</h3>
                     </div>
                     <div class="card-body">
                         <?php if ($dieta): ?>
@@ -484,7 +499,7 @@ if (isset($_GET['error'])) {
                         <?php endif; ?>
 
                         <hr />
-                        <h6 class="mb-2">Archivos del nutricionista</h6>
+                        <h6 class="mb-2"><i class="bi bi-file-earmark-text text-primary me-2"></i>Archivos del nutricionista</h6>
                         <?php if (empty($archivos_plan)): ?>
                             <p class="text-muted">No hay archivos (PDF) asignados a tu plan.</p>
                         <?php else: ?>

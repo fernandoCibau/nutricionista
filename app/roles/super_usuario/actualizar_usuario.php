@@ -26,7 +26,7 @@ $nombre = isset($_POST['user_name']) ? trim($_POST['user_name']) : '';
 $email = isset($_POST['user_email']) ? trim($_POST['user_email']) : '';
 $role_id = filter_input(INPUT_POST, 'user_role_id', FILTER_VALIDATE_INT);
 $status_id = filter_input(INPUT_POST, 'user_status_id', FILTER_VALIDATE_INT);
-$paciente_estado = isset($_POST['paciente_estado']) ? trim($_POST['paciente_estado']) : '';
+// Estado clínico de paciente removido del formulario
 
 if (!$user_id) {
     header('Location: index.php?error=campos_vacios_actualizar');
@@ -88,17 +88,7 @@ try {
     $stmt_update_user = $pdo->prepare($sql_update);
     $stmt_update_user->execute($params);
 
-    // 6.1. Actualizar estado clínico del paciente si corresponde
-    if ($paciente_estado !== '' && in_array($paciente_estado, ['activo','alta'], true)) {
-        $stmt_up_p = $pdo->prepare("UPDATE pacientes SET estado = ? WHERE id_usuario = ? LIMIT 1");
-        $stmt_up_p->execute([$paciente_estado, $user_id]);
-    }
-
-    // 6.1. Actualizar estado clínico del paciente si corresponde
-    if ($paciente_estado !== '' && in_array($paciente_estado, ['activo','alta'], true)) {
-        $stmt_up_p = $pdo->prepare("UPDATE pacientes SET estado = ? WHERE id_usuario = ? LIMIT 1");
-        $stmt_up_p->execute([$paciente_estado, $user_id]);
-    }
+    // Estado clínico de paciente: eliminado (no se actualiza desde aquí)
 
     // 7. Confirmar la transacción
     $pdo->commit();
