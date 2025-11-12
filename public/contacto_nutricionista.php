@@ -38,11 +38,11 @@
     require_once '../app/config.php';
 
     try {
-        // Fetch provinces
+        // Fetch provincias
         $stmt_provincias = $pdo->query("SELECT ID, nombre FROM provincias ORDER BY nombre");
         $provincias = $stmt_provincias->fetchAll(PDO::FETCH_ASSOC);
 
-        // Fetch all localities
+        // Fetch todas las localidades
         $stmt_localidades = $pdo->query("SELECT ID, ID_PROV, nombre FROM localidades ORDER BY nombre");
         $localidades = $stmt_localidades->fetchAll(PDO::FETCH_ASSOC);
 

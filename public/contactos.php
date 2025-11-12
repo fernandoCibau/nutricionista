@@ -75,8 +75,8 @@
 
     <main class="container my-5">
         <div class="text-center mb-5">
-            <h1 class="display-5 fw-bold">Solicita tu Primera Consulta</h1>
-            <p class="lead">Completa el formulario y da el primer paso hacia una vida más saludable. Nos contactaremos para coordinar una cita.</p>
+            <h1 class="display-5 fw-bold">Respondemos a tus consultas</h1>
+            <p class="lead">Completa el formulario y contactate con nosotros para resolver tus dudas.</p>
         </div>
 
         <?php if ($mensaje): ?>
@@ -93,7 +93,7 @@
                     <div class="mb-3"><label for="nombre" class="form-label">Nombre Completo</label><input type="text" class="form-control" id="nombre" name="nombre" required></div>
                     <div class="mb-3"><label for="email" class="form-label">Correo Electrónico</label><input type="email" class="form-control" id="email" name="email" required></div>
                     <input type="hidden" name="asunto" value="Solicitud de Primera Cita">
-                    <div class="mb-3"><label for="mensaje" class="form-label">Cuéntanos sobre tus objetivos</label><textarea class="form-control" id="mensaje" name="mensaje" rows="5" required></textarea></div>
+                    <div class="mb-3"><label for="mensaje" class="form-label">Cuéntanos tus dudas</label><textarea class="form-control" id="mensaje" name="mensaje" rows="5" required></textarea></div>
                     <button type="submit" class="btn btn-primary btn-lg">Enviar Solicitud</button>
                 </form>
             </div>

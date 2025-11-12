@@ -54,7 +54,9 @@ try {
     $newUserId = (int)$pdo->lastInsertId();
 
     if ((int)$role_id === 2) {
-        // Mapear IDs a nombres porque la tabla nutricionistas almacena strings provincia/localidad
+        // Si el nuevo usuario es un nutricionista, se guardan su provincia y localidad.
+        // La tabla 'nutricionistas' guarda los nombres de la provincia y localidad, no sus IDs.
+        // Por lo tanto, primero se buscan los nombres a partir de los IDs recibidos del formulario.
         $provNombre = null; $locNombre = null;
         if ($provincia_id) {
             $q = $pdo->prepare('SELECT nombre FROM provincias WHERE ID = ? LIMIT 1');

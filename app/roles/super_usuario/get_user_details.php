@@ -6,7 +6,7 @@
 
 session_start();
 
-// 1. Seguridad: Verificar sesiÃ³n y rol de superadmin
+// 1. Seguridad: Verificar sesión y rol de superadmin
 if (!isset($_SESSION['user_id']) || $_SESSION['user_rol'] !== 1) {
     http_response_code(403); // Forbidden
     echo json_encode(['error' => 'Acceso no autorizado.']);
@@ -46,7 +46,7 @@ try {
     $details = [];
     $role_name = strtolower($user['nombre_rol']);
 
-    // 4. Obtener detalles adicionales segÃºn el rol
+    // 4. Obtener detalles adicionales según el rol
     if ($role_name === 'nutricionista') {
         // Si es nutricionista, buscar sus pacientes (incluyendo estado clÃ­nico de pacientes)
         $stmt_patients = $pdo->prepare("
@@ -68,7 +68,7 @@ try {
         $details['pacientes'] = $stmt_patients->fetchAll(PDO::FETCH_ASSOC);
 
     } elseif ($role_name === 'paciente') {
-        // Si es paciente, devolver su estado clÃ­nico y su nutricionista asignado
+        // Si es paciente, devolver su estado clí­nico y su nutricionista asignado
         $stmt_p = $pdo->prepare("SELECT id AS paciente_id FROM pacientes WHERE id_usuario = ? LIMIT 1");
         $stmt_p->execute([$user_id]);
         $details['paciente'] = $stmt_p->fetch(PDO::FETCH_ASSOC) ?: null;

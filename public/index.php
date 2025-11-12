@@ -40,10 +40,11 @@
             </button>
         <div class="navbar-contenedor"> 
             <a href="nosotros.php" class="nav-link">Nosotros</a>
-
+        <div class="navbar-contenedor"> 
+            <a href="contactos.php" class="nav-link">Contacto</a>
             <div class="desplegable-container">
                 <button id="miBoton" class="nav-link desplegable-btn">
-                    Contacto <span class="caret">▼</span>
+                    Solicitar cita <span class="caret">▼</span>
                 </button>
                 <div id="miMenu" class="desplegable-content">
                     <a href="contacto_paciente.php">Soy paciente</a>

@@ -23,8 +23,7 @@ body {
 /* --- La Barra de Navegación --- */
 .navbar {
     background-color: var(--color-primary);
-    padding: 10px 10px;
-    border-bottom: 2px solid #000102;
+    padding: 10px 50px;
     color: white; /* Color de texto por defecto para la barra */
 }
 
@@ -44,7 +43,6 @@ body {
     font-size: 1.75rem;
     font-weight: 700;
     margin-right: 25px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* --- Links de Navegación --- */

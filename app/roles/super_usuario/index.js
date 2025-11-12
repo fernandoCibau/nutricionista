@@ -299,16 +299,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 const localidadSelect = document.getElementById('add-user-localidad');
         
                 if (provinciaSelect && localidadSelect) {
+                    // Se agrega un event listener al dropdown de provincias.
+                    // Cuando se selecciona una provincia, se dispara este evento.
                     provinciaSelect.addEventListener('change', function() {
                         const provinciaId = this.value;
                         localidadSelect.disabled = true;
                         localidadSelect.innerHTML = '<option value="" selected disabled>-- Elige una localidad --</option>';
         
                         if (provinciaId) {
+                            // Se hace una petición fetch al script get_localidades.php, 
+                            // pasándole el ID de la provincia seleccionada.
                             console.log('Fetching localidades for provinciaId:', provinciaId);
-                            fetch(`../../public/get_localidades.php?provincia_id=${provinciaId}`)
+                            fetch(`/nutricionistaGit/public/get_localidades.php?provincia_id=${provinciaId}`)
                                 .then(response => response.json())
                                 .then(data => {
+                                    // El script PHP devuelve un JSON con las localidades.
+                                    // Se itera sobre el JSON y se puebla el dropdown de localidades.
                                     console.log('Received data for localidades:', data);
                                     if (data.error) {
                                         console.error(data.error);

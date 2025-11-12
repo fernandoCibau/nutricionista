@@ -39,18 +39,19 @@ $estados_list = []; // Lista de estados para el modal de edición
 $filtro_rol = $_GET['rol'] ?? 'todos'; // Por defecto, mostrar todos
 $search_query = trim($_GET['q'] ?? ''); // Obtener el término de búsqueda
 
-$provincias = []; // Inicializar array de provincias
-try {
-    // Obtener todas las provincias
-    $stmt_provincias = $pdo->query("SELECT id, nombre FROM provincias ORDER BY nombre ASC");
-    $provincias = $stmt_provincias->fetchAll(PDO::FETCH_ASSOC);
+    $provincias = []; // Inicializar array de provincias
+    try {
+        // Obtener todas las provincias para el dropdown. 
+        // Las localidades se cargarán dinámicamente con JavaScript (ver index.js)
+        // al seleccionar una provincia.
+        $stmt_provincias = $pdo->query("SELECT id, nombre FROM provincias ORDER BY nombre ASC");
+        $provincias = $stmt_provincias->fetchAll(PDO::FETCH_ASSOC);
 
-    // Obtener todos los roles e identificar el ID de 'paciente'
-    $stmt_all_roles = $pdo->query("SELECT id, nombre FROM roles");
-    $all_roles = $stmt_all_roles->fetchAll(PDO::FETCH_ASSOC);
-    $nutricionista_role_id = null;
-    foreach ($all_roles as $r) {
-        $nombreRol = strtolower($r['nombre']);
+        // Obtener todos los roles e identificar el ID de 'paciente'
+        $stmt_all_roles = $pdo->query("SELECT id, nombre FROM roles");
+        $all_roles = $stmt_all_roles->fetchAll(PDO::FETCH_ASSOC);
+        $nutricionista_role_id = null;
+        foreach ($all_roles as $r) {        $nombreRol = strtolower($r['nombre']);
         if ($nombreRol === 'paciente') {
             $paciente_role_id = $r['id'];
         } elseif ($nombreRol === 'nutricionista') {
