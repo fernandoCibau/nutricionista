@@ -53,23 +53,8 @@ try {
     $insUser->execute([$nombre, $email, $password_hash, $role_id, $estadoAsignado]);
     $newUserId = (int)$pdo->lastInsertId();
 
-    if ((int)$role_id === 2) {
-        // Si el nuevo usuario es un nutricionista, se guardan su provincia y localidad.
-        // La tabla 'nutricionistas' guarda los nombres de la provincia y localidad, no sus IDs.
-        // Por lo tanto, primero se buscan los nombres a partir de los IDs recibidos del formulario.
-        $provNombre = null; $locNombre = null;
-        if ($provincia_id) {
-            $q = $pdo->prepare('SELECT nombre FROM provincias WHERE ID = ? LIMIT 1');
-            $q->execute([$provincia_id]);
-            $provNombre = $q->fetchColumn();
-        }
-        if ($localidad_id && $provincia_id) {
-            $q2 = $pdo->prepare('SELECT nombre FROM localidades WHERE ID = ? AND ID_PROV = ? LIMIT 1');
-            $q2->execute([$localidad_id, $provincia_id]);
-            $locNombre = $q2->fetchColumn();
-        }
-        $pdo->prepare('INSERT INTO nutricionistas (id_usuario, provincia, localidad) VALUES (?, ?, ?)')
-            ->execute([$newUserId, $provNombre ?: '', $locNombre ?: '']);
+      if ((int)$role_id === 2) {
+        $pdo->prepare('INSERT INTO nutricionistas (id_usuario) VALUES (?)')->execute([$newUserId]);
     }
 
     if ((int)$role_id === 3 && $nutricionista_user_id) {
