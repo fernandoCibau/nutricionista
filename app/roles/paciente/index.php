@@ -293,7 +293,7 @@ if (isset($_GET['error'])) {
         <div class="container">
             <a class="navbar-brand d-flex align-items-center text-white" href="#">
                 <i class="bi bi-heart-pulse fs-4 me-2"></i>
-                <strong>NutriApp - Panel Paciente</strong>
+                <strong>NutriApp</strong>
             </a>
 
             <!-- Botón Hamburguesa para móvil -->

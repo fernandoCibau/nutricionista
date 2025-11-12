@@ -60,11 +60,11 @@ if (isset($_GET['exito'])) {
     <!-- Dependencias de Estilos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../public/styles.css"> 
+    <link rel="stylesheet" href="../public/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link href="../public/styles.css" rel="stylesheet">
+    <link rel="stylesheet" href="../public/style_header.css">
 </head>
 <body>
 
@@ -72,17 +72,19 @@ if (isset($_GET['exito'])) {
     <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100"></div>
 
     <!-- Header simplificado para la página de login -->
-    <header class="navbar navbar-expand-lg shadow-sm navbar-primary bg-primary">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="../public/index.php"> <!-- Enlace a la web principal -->
-                <i class="bi bi-heart-pulse fs-4 me-2"></i>
-                <strong>NutriApp</strong>
-            </a>
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link inicio-link" href="../public/index.php">Volver</a> <!-- Estilo mejorado -->
-                </li>
-            </ul>
+    <header class="navbar">
+        <a href="../public/index.php" class="navbar-brand">
+            <i class="bi bi-heart-pulse fs-4 me-2"></i>
+            <strong>NutriApp</strong>
+        </a>
+        <button class="navbar-toggler" type="button">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-contenedor">
+            <a href="../public/nosotros.php" class="nav-link">Nosotros</a>
+        <div class="navbar-contenedor">
+            <a href="../public/contactos.php" class="nav-link">Contacto</a>
+            <a href="../app/index.php" class="nav-link">Iniciar Sesion</a>
         </div>
     </header>
 
