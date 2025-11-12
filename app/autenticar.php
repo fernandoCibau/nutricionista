@@ -30,31 +30,38 @@ if (empty($email) || empty($password)) {
 
 try {
     // 6. Buscar al usuario por su email en la base de datos.
-    $stmt = $pdo->prepare("SELECT id, nombre, email, password, role_id FROM usuarios WHERE email = ?");
+    $stmt = $pdo->prepare("SELECT id, nombre, email, password, role_id, id_estado FROM usuarios WHERE email = ?");
     $stmt->execute([$email]); // Se pasa el email como parámetro aquí
     $user = $stmt->fetch();
 
     // 7. Verificar si se encontró un usuario y si la contraseña es correcta.
     // usamos password_verify() porque la contraseña en la BD está hasheada.
     if ($user && password_verify($password, $user['password'])) {
-        // ¡Credenciales correctas!
+        // ¡Credenciales correctas! Ahora verificamos el estado de la cuenta.
+        // 1 = activo, 2 = pendiente, 3 = inactivo
+        if ($user['id_estado'] == 1) {
+            // ¡Cuenta activa! Procedemos con el inicio de sesión.
 
-        // 8. Regenerar el ID de sesión por seguridad.
-        session_regenerate_id(true);
+            // 8. Regenerar el ID de sesión por seguridad.
+            session_regenerate_id(true);
 
-        // 9. Guardar los datos del usuario en la sesión.
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_nombre'] = $user['nombre'];
-        $_SESSION['user_email'] = $user['email'];
-        $_SESSION['user_rol'] = $user['role_id']; // Guardamos el rol para control de acceso
+            // 9. Guardar los datos del usuario en la sesión.
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_nombre'] = $user['nombre'];
+            $_SESSION['user_email'] = $user['email'];
+            $_SESSION['user_rol'] = $user['role_id']; // Guardamos el rol para control de acceso
 
-        // 10. Redirigir según el rol del usuario.
-        if ($user['role_id'] === 1) { // Suponiendo que 1 es el ID para super usuario
-            header('Location: roles/super_usuario/index.php');
-        } elseif ($user['role_id'] === 2) { // Suponiendo que 2 es el ID para nutricionista
-            header('Location: roles/nutricionista/index.php');
-        } elseif ($user['role_id'] === 3) { // Suponiendo que 3 es el ID para paciente
-            header('Location: roles/paciente/index.php');
+            // 10. Redirigir según el rol del usuario.
+            if ($user['role_id'] === 1) { // Suponiendo que 1 es el ID para super usuario
+                header('Location: roles/super_usuario/index.php');
+            } elseif ($user['role_id'] === 2) { // Suponiendo que 2 es el ID para nutricionista
+                header('Location: roles/nutricionista/index.php');
+            } elseif ($user['role_id'] === 3) { // Suponiendo que 3 es el ID para paciente
+                header('Location: roles/paciente/index.php');
+            }
+        } else {
+            // La cuenta está pendiente o inactiva.
+            header('Location: index.php?error=cuenta_inactiva');
         }
         exit;
     } else {

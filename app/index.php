@@ -38,6 +38,8 @@ if (isset($_GET['error'])) {
         $error = 'Por favor, completa todos los campos.';
     } elseif ($_GET['error'] == 'credenciales_invalidas') {
         $error = 'El email o la contraseña son incorrectos.';
+    } elseif ($_GET['error'] == 'cuenta_inactiva') {
+        $error = 'Tu cuenta está pendiente de activación o ha sido desactivada. Contacta al administrador.';
     }
 }
 
