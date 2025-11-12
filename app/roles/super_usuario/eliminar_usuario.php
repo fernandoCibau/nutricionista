@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // 3. Incluir dependencias
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/logica_eliminacion.php'; // Incluimos la nueva lógica de eliminación
 
 // 4. Obtener y validar el ID del usuario a eliminar
 $user_id = filter_var($_POST['delete_user_id'] ?? '', FILTER_VALIDATE_INT);
@@ -31,33 +32,61 @@ if ($user_id === $_SESSION['user_id']) {
 }
 
 try {
-    // 6. Verificar la contraseña del super administrador
+    // 6. Verificar la contraseña del superadministrador que realiza la acción
     $admin_id = $_SESSION['user_id'];
     $stmt = $pdo->prepare("SELECT password FROM usuarios WHERE id = ?");
     $stmt->execute([$admin_id]);
-    $admin_user = $stmt->fetch();
+    $admin_hash = $stmt->fetchColumn();
 
-    if (!$admin_user || !password_verify($admin_password, $admin_user['password'])) {
+    if (!$admin_hash || !password_verify($admin_password, $admin_hash)) {
         // La contraseña es incorrecta
         header('Location: index.php?error=password_incorrecta');
         exit;
     }
 
-    // Si la contraseña es correcta, proceder con la eliminación
+    // 7. Si la contraseña es correcta, proceder con la eliminación en cascada.
+    // Iniciamos una transacción para asegurar que todas las eliminaciones se completen o ninguna.
+    $pdo->beginTransaction();
 
-    // 7. Ejecutar la consulta para eliminar al usuario
-    $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");
-    $stmt->execute([$user_id]);
+    // Obtenemos el rol del usuario que se va a eliminar
+    $rol_usuario_a_eliminar = obtenerRolUsuario($user_id, $pdo);
 
-    // 7. Verificar si se eliminó alguna fila
-    if ($stmt->rowCount() > 0) {
-        header('Location: index.php?exito=usuario_eliminado');
-    } else {
-        header('Location: index.php?error=usuario_no_encontrado'); // El usuario ya no existía
+    if (!$rol_usuario_a_eliminar) {
+        $pdo->rollBack();
+        header('Location: index.php?error=usuario_no_encontrado');
+        exit;
     }
+
+    // 8. Ejecutar la función de eliminación correspondiente según el rol
+    switch ($rol_usuario_a_eliminar) {
+        case 'nutricionista':
+            $pacientes_eliminados = eliminarNutricionistaCompleto($user_id, $pdo);
+            if ($pacientes_eliminados > 0) {
+                $_SESSION['flash_message'] = "Además, se eliminaron $pacientes_eliminados pacientes asociados.";
+            }
+            break;
+        
+        case 'paciente':
+            eliminarPacienteCompleto($user_id, $pdo);
+            break;
+
+        default:
+            // Para otros roles (como otro superadmin), solo eliminamos el usuario
+            $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");
+            $stmt->execute([$user_id]);
+            break;
+    }
+
+    // 9. Si todo fue bien, confirmamos la transacción
+    $pdo->commit();
+
+    header('Location: index.php?exito=usuario_eliminado');
     exit;
 
 } catch (PDOException $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     error_log("Error al eliminar usuario: " . $e->getMessage());
     header('Location: index.php?error=db_error_eliminar');
     exit;

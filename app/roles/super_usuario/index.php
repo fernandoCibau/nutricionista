@@ -39,19 +39,18 @@ $estados_list = []; // Lista de estados para el modal de edición
 $filtro_rol = $_GET['rol'] ?? 'todos'; // Por defecto, mostrar todos
 $search_query = trim($_GET['q'] ?? ''); // Obtener el término de búsqueda
 
-    $provincias = []; // Inicializar array de provincias
-    try {
-        // Obtener todas las provincias para el dropdown. 
-        // Las localidades se cargarán dinámicamente con JavaScript (ver index.js)
-        // al seleccionar una provincia.
-        $stmt_provincias = $pdo->query("SELECT id, nombre FROM provincias ORDER BY nombre ASC");
-        $provincias = $stmt_provincias->fetchAll(PDO::FETCH_ASSOC);
+$provincias = []; // Inicializar array de provincias
+try {
+    // Obtener todas las provincias
+    $stmt_provincias = $pdo->query("SELECT id, nombre FROM provincias ORDER BY nombre ASC");
+    $provincias = $stmt_provincias->fetchAll(PDO::FETCH_ASSOC);
 
-        // Obtener todos los roles e identificar el ID de 'paciente'
-        $stmt_all_roles = $pdo->query("SELECT id, nombre FROM roles");
-        $all_roles = $stmt_all_roles->fetchAll(PDO::FETCH_ASSOC);
-        $nutricionista_role_id = null;
-        foreach ($all_roles as $r) {        $nombreRol = strtolower($r['nombre']);
+    // Obtener todos los roles e identificar el ID de 'paciente'
+    $stmt_all_roles = $pdo->query("SELECT id, nombre FROM roles");
+    $all_roles = $stmt_all_roles->fetchAll(PDO::FETCH_ASSOC);
+    $nutricionista_role_id = null;
+    foreach ($all_roles as $r) {
+        $nombreRol = strtolower($r['nombre']);
         if ($nombreRol === 'paciente') {
             $paciente_role_id = $r['id'];
         } elseif ($nombreRol === 'nutricionista') {
@@ -144,6 +143,12 @@ if (isset($_GET['exito'])) {
     if ($_GET['exito'] === 'usuario_eliminado') {
         $mensaje = 'El usuario ha sido eliminado correctamente.';
         $tipo_mensaje = 'success';
+        // Verificar si hay un mensaje flash sobre pacientes eliminados
+        if (isset($_SESSION['flash_message'])) {
+            $mensaje .= ' ' . htmlspecialchars($_SESSION['flash_message']);
+            // Limpiar el mensaje para que no se muestre de nuevo
+            unset($_SESSION['flash_message']);
+        }
     }
 }
 
@@ -207,7 +212,7 @@ if (isset($_GET['error'])) {
         <div class="container">
             <a class="navbar-brand d-flex align-items-center text-white" href="#">
                 <i class="bi bi-heart-pulse fs-4 me-2"></i>
-                <strong>NutriApp </strong>
+                <strong>NutriApp - Panel Superadmin</strong>
             </a>
 
             <!-- Botón Hamburguesa para móvil -->
@@ -427,11 +432,32 @@ if (isset($_GET['error'])) {
                                 <label for="add-user-name" class="form-label">Nombre Completo</label>
                                 <input type="text" class="form-control" id="add-user-name" name="user_name">
                             </div>
+                            <?php if (empty($provincias)): ?>
+                                <div class="alert alert-warning" role="alert">
+                                    No se encontraron provincias en la base de datos. Por favor, agregue provincias para poder seleccionar una localidad.
+                                </div>
+                            <?php endif; ?>
                             <div class="mb-3">
                                 <label for="add-user-email" class="form-label">Email</label>
                                 <input type="email" class="form-control" id="add-user-email" name="user_email">
                             </div>
-                            
+                            <div id="add-user-ubicacion-block">
+                                <div class="mb-3">
+                                    <label for="add-user-provincia" class="form-label">Provincia</label>
+                                    <select class="form-select" id="add-user-provincia" name="user_provincia_id">
+                                        <option value="" selected disabled>-- Elige una provincia --</option>
+                                        <?php foreach ($provincias as $provincia): ?>
+                                            <option value="<?php echo $provincia['id']; ?>"><?php echo htmlspecialchars($provincia['nombre']); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="add-user-localidad" class="form-label">Localidad</label>
+                                    <select class="form-select" id="add-user-localidad" name="user_localidad_id" disabled>
+                                        <option value="" selected disabled>-- Elige una localidad --</option>
+                                    </select>
+                                </div>
+                            </div>
                             <div class="mb-3">
                                 <label for="add-user-password" class="form-label">Contraseña</label>
                                 <input type="password" class="form-control" id="add-user-password" name="user_password">
