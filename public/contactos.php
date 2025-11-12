@@ -44,39 +44,42 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style_header.css">
 </head>
 <body>
-    <!-- Header con navegación mejorada -->
-    <header class="navbar navbar-expand-lg shadow-sm navbar-primary bg-primary">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="index.php">
-                <i class="bi bi-heart-pulse fs-4 me-2"></i>
-                <strong>NutriApp</strong>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavPublic" aria-controls="navbarNavPublic" aria-expanded="false" aria-label="Toggle navigation">
+    <!-- Header -->
+    <header class="navbar">
+        <a href="index.php" class="navbar-brand">
+        <i class="bi bi-heart-pulse fs-4 me-2"></i>
+        <strong>NutriApp</strong></a>
+       <button class="navbar-toggler" type="button" >
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNavPublic">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="nosotros.php">Nosotros</a></li>
-                    <li class="nav-item"><a class="nav-link active" aria-current="page" href="contactos.php">Contacto</a></li>
-                </ul>
-                <ul class="navbar-nav ms-auto align-items-center flex-row">
-                    <?php if (!isset($_SESSION['user_id'])): ?>
-                        <li class="nav-item"><a class="nav-link inicio-link" href="../app/index.php">Iniciar Sesión</a></li>
-                    <?php else: ?>
-                        <li class="nav-item me-3"><a class="nav-link" href="<?php echo $dashboard_link; ?>">Mi Panel</a></li>
-                        <li class="nav-item"><a class="nav-link logout-link" href="../app/logout.php"><i class="bi bi-box-arrow-right"></i><span class="d-none d-sm-inline ms-1">Cerrar Sesión</span></a></li>
-                    <?php endif; ?>
-                </ul>
+        <div class="navbar-contenedor"> 
+            <a href="index.php" class="nav-link">Inicio</a>
+        <div class="navbar-contenedor"> 
+        <div class="navbar-contenedor"> 
+            <a href="nosotros.php" class="nav-link">Nosotros</a>
+        <div class="navbar-contenedor"> 
+            <a href="contactos.php" class="nav-link">Contacto</a>
+            <div class="desplegable-container" style="display:none">
+                <button id="miBoton" class="nav-link desplegable-btn">
+                    Solicitar cita <span class="caret">�-�</span>
+                </button>
+                <div id="miMenu" class="desplegable-content">
+                    <a href="contacto_paciente.php">Soy paciente</a>
+                    <a href="contacto_nutricionista.php">Soy nutricionista</a>
+                </div>
             </div>
+
+            <a href="../app/index.php" class="nav-link">Iniciar Sesión</a>
         </div>
     </header>
 
     <main class="container my-5">
         <div class="text-center mb-5">
-            <h1 class="display-5 fw-bold">Respondemos a tus consultas</h1>
-            <p class="lead">Completa el formulario y contactate con nosotros para resolver tus dudas.</p>
+            <h1 class="display-5 fw-bold">Realiza tu consulta</h1>
+            <p class="lead">Si sos paciente, nutricionista, o tenes alguna duda, completa el formulario y nos contactaremos.</p>
         </div>
 
         <?php if ($mensaje): ?>
@@ -93,7 +96,7 @@
                     <div class="mb-3"><label for="nombre" class="form-label">Nombre Completo</label><input type="text" class="form-control" id="nombre" name="nombre" required></div>
                     <div class="mb-3"><label for="email" class="form-label">Correo Electrónico</label><input type="email" class="form-control" id="email" name="email" required></div>
                     <input type="hidden" name="asunto" value="Solicitud de Primera Cita">
-                    <div class="mb-3"><label for="mensaje" class="form-label">Cuéntanos tus dudas</label><textarea class="form-control" id="mensaje" name="mensaje" rows="5" required></textarea></div>
+                    <div class="mb-3"><label for="mensaje" class="form-label">Cuéntanos sobre tus objetivos</label><textarea class="form-control" id="mensaje" name="mensaje" rows="5" required></textarea></div>
                     <button type="submit" class="btn btn-primary btn-lg">Enviar Solicitud</button>
                 </form>
             </div>

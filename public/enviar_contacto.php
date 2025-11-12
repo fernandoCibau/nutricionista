@@ -7,6 +7,7 @@ use PHPMailer\PHPMailer\Exception;
 
 // Cargar el autoloader de Composer desde la carpeta app
 require '../app/libs/vendor/autoload.php';
+require_once '../app/config.php'; // Conexión a la base de datos ($pdo)
 
 // Verificar que la solicitud sea por método POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -27,7 +28,17 @@ if (empty($nombre) || !filter_var($email, FILTER_VALIDATE_EMAIL) || empty($asunt
     exit;
 }
 
-// Crear una instancia de PHPMailer
+// Primero almacenar el contacto en la base de datos
+try {
+    $stmt = $pdo->prepare('INSERT INTO contactos (email, nombre, texto) VALUES (?, ?, ?)');
+    $stmt->execute([$email, $nombre, $mensaje]);
+} catch (Exception $e) {
+    error_log('Error al guardar contacto: ' . $e->getMessage());
+    header('Location: contactos.php?error=envio_fallido#contact-form');
+    exit;
+}
+
+// Crear una instancia de PHPMailer (opcional, mantenemos envío de correo)
 $mail = new PHPMailer(true);
 
 try {

@@ -116,13 +116,24 @@ if (!in_array($currentTab, $allowedTabs, true)) { $currentTab = 'pills-historial
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto align-items-center">
           <li class="nav-item"><a class="nav-link text-white" href="index.php"><i class="bi bi-calendar-event me-1"></i> Calendario</a></li>
-          <li class="nav-item"><a class="nav-link text-white" href="gestionar_pacientes.php"><i class="bi bi-people-fill me-1"></i> Pacientes</a></li>
+          <li class="nav-item"><a class="nav-link text-white active" href="gestionar_pacientes.php"><i class="bi bi-people-fill me-1"></i> Pacientes</a></li>
           <li class="nav-item ms-3"><span class="nav-link text-white" title="Perfil"><i class="bi bi-person-circle me-1"></i> <?php echo $nombreUsuario; ?></span></li>
-          <li class="nav-item"><a class="nav-link text-white" href="../../logout.php"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+          <li class="nav-item"><a class="nav-link logout-link text-white" href="../../logout.php"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
         </ul>
       </div>
     </div>
   </header>
+
+ <main class="container my-5">
+        <?php if (isset($_SESSION['original_admin_id'])): ?>
+            <div class="alert alert-warning border-warning d-flex justify-content-between align-items-center mb-4" role="alert">
+                <div>
+                    <i class="bi bi-person-fill-gear me-2"></i>
+                    Estás suplantando a <strong><?php echo htmlspecialchars($_SESSION['user_nombre']); ?></strong>.
+                </div>
+                <a href="../super_usuario/volver_admin.php" class="btn btn-warning fw-bold">Volver a mi sesión (<?php echo htmlspecialchars($_SESSION['original_admin_nombre'] ?? 'Admin'); ?>)</a>
+            </div>
+        <?php endif; ?>
 
   <main class="container my-4">
     <div class="d-flex align-items-center justify-content-between mb-3">

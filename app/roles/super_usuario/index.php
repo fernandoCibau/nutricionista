@@ -427,32 +427,11 @@ if (isset($_GET['error'])) {
                                 <label for="add-user-name" class="form-label">Nombre Completo</label>
                                 <input type="text" class="form-control" id="add-user-name" name="user_name">
                             </div>
-                            <?php if (empty($provincias)): ?>
-                                <div class="alert alert-warning" role="alert">
-                                    No se encontraron provincias en la base de datos. Por favor, agregue provincias para poder seleccionar una localidad.
-                                </div>
-                            <?php endif; ?>
                             <div class="mb-3">
                                 <label for="add-user-email" class="form-label">Email</label>
                                 <input type="email" class="form-control" id="add-user-email" name="user_email">
                             </div>
-                            <div id="add-user-ubicacion-block">
-                                <div class="mb-3">
-                                    <label for="add-user-provincia" class="form-label">Provincia</label>
-                                    <select class="form-select" id="add-user-provincia" name="user_provincia_id">
-                                        <option value="" selected disabled>-- Elige una provincia --</option>
-                                        <?php foreach ($provincias as $provincia): ?>
-                                            <option value="<?php echo $provincia['id']; ?>"><?php echo htmlspecialchars($provincia['nombre']); ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="add-user-localidad" class="form-label">Localidad</label>
-                                    <select class="form-select" id="add-user-localidad" name="user_localidad_id" disabled>
-                                        <option value="" selected disabled>-- Elige una localidad --</option>
-                                    </select>
-                                </div>
-                            </div>
+                            
                             <div class="mb-3">
                                 <label for="add-user-password" class="form-label">Contraseña</label>
                                 <input type="password" class="form-control" id="add-user-password" name="user_password">

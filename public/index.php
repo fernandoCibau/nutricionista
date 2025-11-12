@@ -42,15 +42,7 @@
             <a href="nosotros.php" class="nav-link">Nosotros</a>
         <div class="navbar-contenedor"> 
             <a href="contactos.php" class="nav-link">Contacto</a>
-            <div class="desplegable-container">
-                <button id="miBoton" class="nav-link desplegable-btn">
-                    Solicitar cita <span class="caret">▼</span>
-                </button>
-                <div id="miMenu" class="desplegable-content">
-                    <a href="contacto_paciente.php">Soy paciente</a>
-                    <a href="contacto_nutricionista.php">Soy nutricionista</a>
-                </div>
-            </div>
+           
 
             <a href="../app/index.php" class="nav-link">Iniciar Sesión</a>
         </div>
@@ -65,8 +57,8 @@
             <div class="col-lg-6 mx-auto">
                 <p class="lead mb-4">La plataforma todo-en-uno para nutricionistas y pacientes. Simplifica el seguimiento, personaliza planes y alcanza tus metas de salud de forma colaborativa y eficiente.</p>
                 <div class="hero-buttons">
-                    <a href="contacto_paciente.php" class="btn btn-primary btn-cta">Solicitar Cita</a>
-                    <a href="contacto_nutricionista.php" class="btn btn-outline-secondary btn-cta">Trabaja con nosotros</a>
+                    <a href="contactos.php" class="btn btn-primary btn-cta">Solicitar Cita</a>
+                    <a href="nosotros.php" class="btn btn-outline-secondary btn-cta">Sobre Nosotros</a>
                 </div>
             </div>
         </div>

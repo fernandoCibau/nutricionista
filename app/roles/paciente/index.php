@@ -465,25 +465,6 @@ if (isset($_GET['error'])) {
                             </ul>
                         <?php else: ?>
                             <p class="text-muted">Tiempo de agendar una nueva consulta.</p>
-                            <!-- Botón para solicitar turno al nutricionista -->
-                            <div class="mt-3">
-                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#solicitarTurno" aria-expanded="false" aria-controls="solicitarTurno">Solicitar turno a mi nutricionista</button>
-                                <div class="collapse mt-3" id="solicitarTurno">
-                                    <div class="card card-body">
-                                        <form action="enviar_notificacion_nutricionista.php" method="POST">
-                                            <div class="mb-3">
-                                                <label for="preferencia_fecha" class="form-label">Fecha/horario preferido (opcional)</label>
-                                                <input type="datetime-local" id="preferencia_fecha" name="preferencia_fecha" class="form-control">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="mensaje_solicitud" class="form-label">Mensaje (opcional)</label>
-                                                <textarea id="mensaje_solicitud" name="mensaje" class="form-control" rows="3">Hola, me gustaría coordinar un turno.</textarea>
-                                            </div>
-                                            <button class="btn btn-primary">Enviar solicitud</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
