@@ -86,7 +86,7 @@ if (isset($_GET['exito'])) {
             <a href="../public/nosotros.php" class="nav-link">Nosotros</a>
         <div class="navbar-contenedor">
             <a href="../public/contactos.php" class="nav-link">Contacto</a>
-            <a href="../app/index.php" class="nav-link">Iniciar Sesion</a>
+            <a href="../public/index.php" class="nav-link">Inicio</a>
         </div>
     </header>
 

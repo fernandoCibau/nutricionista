@@ -183,17 +183,6 @@ if (isset($_GET['error'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - NutriApp</title>
 
-    <!-- Estilos personalizados para mejoras de UI -->
-    <style>
-        .clickable-row {
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-        }
-        .clickable-row:hover {
-            background-color: #f0f8ff; /* Un azul claro suave */
-        }
-    </style>
-
     <!-- Dependencias de Estilos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -201,6 +190,32 @@ if (isset($_GET['error'])) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Estilos personalizados para este panel -->
+    <style>
+        header {
+            background-color: #343a40;
+            padding: 1rem 0;
+            height: 15%;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 70%;
+        }
+        main.container {
+            height: 100%;
+            flex: 1; /* Hace que el contenido principal ocupe el espacio disponible */
+            /* Ya no necesita flex: 1, su altura será natural */
+        }
+        footer {
+            background-color: #f8f9fa;
+            padding: 1rem 0;
+            text-align: center;
+            height: 15%;
+        }
+    </style>
+
 </head>
 <body>
 
@@ -239,6 +254,7 @@ if (isset($_GET['error'])) {
 
     <!-- Contenido principal del dashboard -->
     <main class="container my-5">
+    <main class="container my-5 d-flex flex-column justify-content-center">
         <!-- Contenedor para las notificaciones (toasts) -->
         <div class="toast-container position-fixed top-0 end-0 p-3"></div>
         <!-- Tabla de Gestión de Usuarios -->
@@ -562,8 +578,12 @@ if (isset($_GET['error'])) {
         </div>
     </div>
 
+    <!-- Div "empujador" que ocupa el espacio sobrante para mantener el footer abajo -->
+    <div style="flex: 1;"></div>
+
     <!-- Footer con el copyright -->
     <footer class="login-footer">
+    <footer >
         <p>&copy; 2025 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
     </footer>
 
