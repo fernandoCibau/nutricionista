@@ -95,7 +95,7 @@ if (!in_array($currentTab, $allowedTabs, true)) { $currentTab = 'pills-historial
     }
   </style>
   <style id="tabs-hide-css">#pills-tabContent{visibility:hidden} #pills-tab{visibility:hidden}</style>
-  <link rel="stylesheet" href="../../public/styles.css" />
+  <link rel="stylesheet" href="../../../public/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
   <script>
@@ -179,8 +179,6 @@ if (!in_array($currentTab, $allowedTabs, true)) { $currentTab = 'pills-historial
       <li class="nav-item" role="presentation">
         <button class="nav-link" id="pills-evolucion-tab" data-bs-toggle="pill" data-bs-target="#pills-evolucion" type="button" role="tab"><i class="bi bi-graph-up-arrow me-1"></i> Evolución</button>
       </li>
-      
-    
 
       <li class="nav-item" role="presentation">
         <button class="nav-link" id="pills-comidas-tab" data-bs-toggle="pill" data-bs-target="#pills-comidas" type="button" role="tab"><i class="bi bi-images me-1"></i> Comidas diarias</button>

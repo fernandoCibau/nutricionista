@@ -197,7 +197,7 @@ if (isset($_GET['error'])) {
     <!-- Dependencias de Estilos -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../../public/styles.css"> <!-- CORRECCIÓN: Usar los estilos generales -->
+    <link rel="stylesheet" href="../../../public/styles.css"> <!-- CORRECCIÓN: Usar los estilos generales -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -692,19 +692,6 @@ if (isset($_GET['error'])) {
             return str.charAt(0).toUpperCase() + str.slice(1);
         }
     });
-</script>
-<script>
-// Toggle de campos Provincia/Localidad según rol seleccionado
-document.addEventListener('DOMContentLoaded', function(){
-  const roleSel = document.getElementById('add-user-role');
-  const ubicBlock = document.getElementById('add-user-ubicacion-block');
-  const pacienteRoleId = document.getElementById('paciente-role-id')?.value;
-  const nutriRoleId = document.getElementById('nutricionista-role-id')?.value;
-
-
-  roleSel?.addEventListener('change', updateUbicacionVisibility);
-  updateUbicacionVisibility();
-});
 </script>
 
     <?php
