@@ -138,6 +138,10 @@ $nombre_usuario = htmlspecialchars($_SESSION['user_nombre'] ?? 'Nutricionista');
             </div>
         </div>
     </div>
+    <footer class="login-footer" style="text-align: center;">
+        <p></p>
+    <p>&copy;     2025 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
+</footer>
 </main>
 
 <div class="modal fade" id="patientModal" tabindex="-1" aria-labelledby="patientModalLabel" aria-hidden="true">

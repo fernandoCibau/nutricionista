@@ -172,6 +172,13 @@ try {
         </div>
 
         <div class="card shadow-sm"><div class="card-body"><div id="calendar"></div></div></div>
+        
+    <footer class="login-footer" style="text-align: center;">
+        <p></p>
+    <p>&copy;     2025 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
+</footer>
+    
+    
     </main>
 
     <!-- Modal para Turnos -->
@@ -457,4 +464,5 @@ try {
     });
     </script>
 </body>
+
 </html>

@@ -230,7 +230,7 @@ if (!in_array($currentTab, $allowedTabs, true)) { $currentTab = 'pills-historial
     });
 
     (function(){
-      // Insertar botÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n corazÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n para cambiar estado
+      
       const headerRight = document.querySelector('.section-card .card-body .text-end');
       const estadoSpan = document.querySelector('.section-card .card-body .muted-small span.badge');
       if (!headerRight || !estadoSpan) return;
@@ -283,4 +283,9 @@ if (!in_array($currentTab, $allowedTabs, true)) { $currentTab = 'pills-historial
     })();
   </script>
 </body>
+    <footer class="login-footer">
+        <footer class="login-footer" style="text-align: center;">
+    <p>&copy; 2025 Alumnos de UTN Haedo. Todos los derechos reservados.</p>
+</footer>
+    </footer>
 </html>
