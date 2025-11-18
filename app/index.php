@@ -73,21 +73,20 @@ if (isset($_GET['exito'])) {
     <!-- Contenedor para las notificaciones (toasts). Debe estar aquí para un posicionamiento global correcto. -->
     <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100"></div>
 
-    <!-- Header simplificado para la página de login -->
+   <!-- Header -->
     <header class="navbar">
-        <a href="../public/index.php" class="navbar-brand">
+        <a href="index.php" class="navbar-brand">
             <i class="bi bi-heart-pulse fs-4 me-2"></i>
             <strong>NutriApp</strong>
         </a>
-        <button class="navbar-toggler" type="button">
+        <button class="navbar-toggler" type="button" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="navbar-contenedor">
-            <a href="../public/nosotros.php" class="nav-link">Nosotros</a>
-        <div class="navbar-contenedor">
-            <a href="../public/contactos.php" class="nav-link">Contacto</a>
-            <a href="../public/index.php" class="nav-link">Inicio</a>
-        </div>
+        <nav class="navbar-contenedor">
+            <a href="../public/nosotros.php" class="nav-link"><strong>Nosotros</strong></a>
+            <a href="../public/contactos.php" class="nav-link"><strong>Contacto</strong></a>
+            <a href="../public/index.php" class="nav-link"><strong>Inicio</strong></a>
+        </nav>
     </header>
 
     <!-- Contenedor del formulario de login -->
@@ -152,5 +151,6 @@ if (isset($_GET['exito'])) {
     });
     </script>
     <?php endif; ?>
+    <script src="../public/main.js"></script>
 </body>
 </html>

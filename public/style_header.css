@@ -1,51 +1,73 @@
-
 :root {
-    /* Colores basados en tu archivo ejemplo.css y convenciones de Bootstrap */
-    --bg-soft: #f8f9fa;
-    --bg-card: #ffffff;
-    --color-primary: #0d6efd; /* Azul estándar de Bootstrap, visto en tu CSS */
-    --color-primary-hover: #0b5ed7;
-    --color-text: #212529;
-    --color-text-muted: #6c757d; /* Tono gris de tu CSS */
-    --color-border: #dee2e6;
-    --shadow-card: 0 0.5rem 1rem rgba(0, 0, 0, .08);
-    --shadow-card-hover: 0 0.5rem 1rem rgba(0, 0, 0, .12);
-    --shadow-focus: 0 0 0 3px rgba(13, 110, 253, .25);
-    --input-height: 54px; /* Tomado de .capture-input en tu CSS */
+    --color-primary: #0d6efd;
 }
 
-/* --- Reseteo básico --- */
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* --- La Barra de Navegación --- */
 .navbar {
     background-color: var(--color-primary);
-    padding: 10px 50px;
-    color: white; /* Color de texto por defecto para la barra */
-}
-
-/* --- Contenedor Flexbox --- */
-.navbar-contenedor {
+    padding: 10px 20px;
+    color: white;
     display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    max-width: auto;
+    justify-content: space-between;
     align-items: center;
+    position: relative;
 }
 
-/* --- Logo (NutriApp) --- */
 .navbar-brand {
     color: white;
     text-decoration: none;
     font-size: 1.75rem;
     font-weight: 700;
-    margin-right: 25px;
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease, text-shadow 0.3s ease;
 }
 
-/* --- Links de Navegación --- */
+.navbar-brand:hover {
+    color: rgb(255, 255, 255);
+    text-shadow: 0 5px 12px rgb(0, 0, 0);
+}
+
+.navbar-toggler {
+    display: none;
+    background-color: transparent;
+    border: 1px solid transparent; /* Usar borde transparente para que no haya un salto de layout en hover/focus */
+    cursor: pointer;
+    padding: 0.25rem; /* Un poco de padding alrededor del icono */
+    border-radius: 0.5rem; /* Bordes redondeados */
+    z-index: 1001;
+    transition: background-color 0.2s, box-shadow 0.2s; /* Se expande el contoro */
+}
+
+.navbar-toggler:focus {
+    outline: none; /* Quita el contorno por defecto */
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25); /* Sombra de foco más sutil y visible en el header */
+}
+
+.navbar-toggler:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Mismo hover que los nav-links */
+}
+
+.navbar-toggler-icon {
+    display: block;
+    width: 30px;
+    height: 30px;
+    background-image: url('../img/menu-hamburguesa.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
+.navbar-contenedor {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
 .nav-link {
     color: white;
     text-decoration: none;
@@ -53,134 +75,50 @@ body {
     padding: 8px 12px;
     border-radius: 6px;
     margin-left: 5px;
-    display: block; /* Asegura que se comporten igual */
 }
 
 .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.658);
 }
 
-.nav-item{
-    position: relative; /* Para posicionar el menú desplegable */
-}
-
-/* Contenedor del Desplegable */
-.desplegable-container {
-    position: relative; /* Clave para posicionar el menú */
-    display: inline-block;
-}
-
-/* Botón del Desplegable (hereda estilos de .nav-link) */
-.desplegable-btn {
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    font-family: inherit; /* Usa la misma fuente que el body */
-}
-
-/* Estilo de la flechita (▼) */
-.desplegable-btn .caret {
-    font-size: 0.75em;
-    margin-left: 5px;
-    display: inline-block;
-}
-
-/* Contenido del Menú (Oculto por defecto) */
-.desplegable-content {
-    display: none; /* Oculto */
-    position: absolute; /* Se superpone a la página */
-    top: 120%; /* Posición debajo del botón (ajustable) */
-    left: 5px; /* Alineado con el botón */
-    background-color: #f9f9f9;
-    min-width: 180px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    border-radius: 6px;
-    z-index: 100; /* Por encima de otro contenido */
-}
-
-/* Links dentro del menú */
-.desplegable-content a {
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-}
-
-.desplegable-content a:hover {
-    background-color: #f1f1f1;
-}
-
-/* Clase para mostrar el menú con JS */
-.show {
-    display: block;
-}
-
-/* --- Estilos para el menú hamburguesa --- */
-.navbar-toggler {
-    display: none; /* Oculto en escritorio */
-    background-color: transparent;
-    border: none;
-    border-radius: 0px;
-    padding: 0px 0px;
-    cursor: pointer;
-}
-
-.navbar-toggler-icon {
-    display: block;
-    width: 30px; /* Ancho del ícono */
-    height: 30px; /* Alto del ícono */
-    background-image: url('../img/menu-hamburguesa.png');
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-
-/* --- Media Queries para Responsividad --- */
 @media (max-width: 768px) {
-    .navbar{
-        display: flex;
-        justify-content: space-between;
-    }
     .navbar-toggler {
-        display: block; /* Visible en celular/tablet */
+        display: block;
     }
 
     .navbar-contenedor {
-        display: none; /* Oculto por defecto */
+        display: none;
         flex-direction: column;
-        width: 100%;
-        background-color: var(--color-primary);
         position: absolute;
-        top: 60px; /* Debajo de la barra de navegación */
-        left: 0;
-        padding: 10px 0;
+        top: 60px; /* Position below the navbar */
+        right: 20px; /* Align to the right */
+        background-color: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        z-index: 1000;
+        width: 200px;
     }
 
     .navbar-contenedor.active {
-        display: flex; /* Se muestra cuando tiene la clase .active */
+        display: flex;
     }
 
     .nav-link {
+        color: black;
         width: 100%;
-        text-align: center;
-        padding: 10px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: left;
+        padding: 12px 16px;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background-color 0.2s, color 0.2s;
     }
 
-    .desplegable-container {
-        width: 100%;
-        text-align: center;
+    .nav-link:hover {
+        background-color: #0d6dfd62;
+        color: var(--color-primary);
     }
 
-    .desplegable-content {
-        position: static; /* No es absoluto en móvil */
-        background-color: transparent;
-        box-shadow: none;
-        width: 100%;
-    }
-
-    .desplegable-content a {
-        color: white;
-        padding: 10px 0;
+    .nav-link:last-child {
+        border-bottom: none;
     }
 }

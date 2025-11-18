@@ -32,30 +32,17 @@
     <!-- Header -->
     <header class="navbar">
         <a href="index.php" class="navbar-brand">
-        <i class="bi bi-heart-pulse fs-4 me-2"></i>
-        <strong>NutriApp</strong></a>
-       <button class="navbar-toggler" type="button" >
-                <span class="navbar-toggler-icon"></span>
-            </button>
-        <div class="navbar-contenedor"> 
-            <a href="index.php" class="nav-link">Inicio</a>
-        <div class="navbar-contenedor">     
-        <div class="navbar-contenedor"> 
-            <a href="nosotros.php" class="nav-link">Nosotros</a>
-        <div class="navbar-contenedor"> 
-            <a href="contactos.php" class="nav-link">Contacto</a>
-            <div class="desplegable-container" style="display:none">
-                <button id="miBoton" class="nav-link desplegable-btn">
-                    Solicitar cita <span class="caret">�-�</span>
-                </button>
-                <div id="miMenu" class="desplegable-content">
-                    <a href="contacto_paciente.php">Soy paciente</a>
-                    <a href="contacto_nutricionista.php">Soy nutricionista</a>
-                </div>
-            </div>
-
-            <a href="../app/index.php" class="nav-link">Iniciar Sesión</a>
-        </div>
+            <i class="bi bi-heart-pulse fs-4 me-2"></i>
+            <strong>NutriApp</strong>
+        </a>
+        <button class="navbar-toggler" type="button" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <nav class="navbar-contenedor">
+            <a href="index.php" class="nav-link"><strong>Inicio</strong></a>
+            <a href="contactos.php" class="nav-link"><strong>Contacto</strong></a>
+            <a href="<?php echo $dashboard_link; ?>" class="nav-link"><strong>Iniciar Sesión</strong></a>
+        </nav>
     </header>
 
     <main class="container my-5">
@@ -93,5 +80,6 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>

@@ -33,19 +33,17 @@
     <!-- Header -->
     <header class="navbar">
         <a href="index.php" class="navbar-brand">
-        <i class="bi bi-heart-pulse fs-4 me-2"></i>
-        <strong>NutriApp</strong></a>
-       <button class="navbar-toggler" type="button" >
-                <span class="navbar-toggler-icon"></span>
-            </button>
-        <div class="navbar-contenedor"> 
-            <a href="nosotros.php" class="nav-link">Nosotros</a>
-        <div class="navbar-contenedor"> 
-            <a href="contactos.php" class="nav-link">Contacto</a>
-           
-
-            <a href="../app/index.php" class="nav-link">Iniciar Sesión</a>
-        </div>
+            <i class="bi bi-heart-pulse fs-4 me-2"></i>
+            <strong>NutriApp</strong>
+        </a>
+        <button class="navbar-toggler" type="button" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <nav class="navbar-contenedor">
+            <a href="nosotros.php" class="nav-link"><strong>Nosotros</strong></a>
+            <a href="contactos.php" class="nav-link"><strong>Contacto</strong></a>
+            <a href="<?php echo $dashboard_link; ?>" class="nav-link"><strong>Iniciar Sesión</strong></a>
+        </nav>
     </header>
     
     <!-- Contenido principal de la página pública -->
@@ -57,7 +55,7 @@
             <div class="col-lg-6 mx-auto">
                 <p class="lead mb-4">La plataforma todo-en-uno para nutricionistas y pacientes. Simplifica el seguimiento, personaliza planes y alcanza tus metas de salud de forma colaborativa y eficiente.</p>
                 <div class="hero-buttons">
-                    <a href="contactos.php" class="btn btn-primary btn-cta">Solicitar Cita</a>
+                    <a href="contactos.php" class="btn btn-primary btn-cta">Contacto</a>
                     <a href="nosotros.php" class="btn btn-outline-secondary btn-cta">Sobre Nosotros</a>
                 </div>
             </div>
@@ -152,6 +150,6 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="main.js"></script> <!-- CORRECCIÓN: La ruta estaba mal, ahora es correcta -->
+    <script src="main.js"></script>
 </body>
 </html>

@@ -65,10 +65,10 @@ header.navbar-primary.bg-primary .navbar-text { /* Para el texto del nombre de u
     color: #fff !important; /* Cambiado a blanco puro */
 }
 
-/* Estilo específico para el icono del menú hamburguesa en fondo oscuro */
+/* Estilo específico para el icono del menú hamburguesa en fondo oscuro 
 header.navbar-primary .navbar-toggler-icon {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
-}
+}*/
 
 /* Efecto hover para los enlaces del header */
 header.navbar-primary .nav-link:hover {
@@ -295,7 +295,7 @@ footer {
 .hero-buttons .btn-primary { border: 1px solid transparent; width: auto; }
 .hero-buttons .btn-outline-secondary { border-width: 1px; font-weight: 600; width: auto; }
 
-/* Mantenerlos lado a lado en móviles y ocupar el ancho del texto */
+/* Mantenerlos lado a lado en celulares y ocupar el ancho del texto */
 
 .gallery-item {
     display: inline-block;
