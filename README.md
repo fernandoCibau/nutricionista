@@ -160,75 +160,601 @@ Si alguna tabla auxiliar (por ej. `notificaciones`, `historias`, `dietas`, `habi
 
 SQL sugerido (esquema mínimo) para crear las tablas auxiliares:
 
-```sql
--- Notificaciones (solicitudes de eliminación entre otras)
-CREATE TABLE IF NOT EXISTS notificaciones (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  tipo VARCHAR(50) NOT NULL,
-  contenido TEXT NOT NULL,
-  creado_por INT DEFAULT NULL,
-  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
-  leido TINYINT(1) DEFAULT 0
-);
+CREATE TABLE `archivos_plan` (
+  `id` bigint(20) NOT NULL,
+  `id_paciente` bigint(20) NOT NULL,
+  `nombre_archivo` varchar(255) NOT NULL,
+  `url_archivo` text NOT NULL,
+  `fecha_subida` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Historias clínicas (últimas entradas por paciente)
-CREATE TABLE IF NOT EXISTS historias (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  id_paciente INT NOT NULL,
-  resumen TEXT,
-  antecedentes TEXT,
-  notas_nutri TEXT,
-  bloqueada TINYINT(1) DEFAULT 0,
-  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+-- --------------------------------------------------------
 
--- Dietas
-CREATE TABLE IF NOT EXISTS dietas (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  id_paciente INT NOT NULL,
-  id_nutricionista INT NOT NULL,
-  titulo VARCHAR(255) NOT NULL,
-  contenido TEXT NOT NULL,
-  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+--
+-- Estructura de tabla para la tabla `consultas`
+--
 
--- Habitos
-CREATE TABLE IF NOT EXISTS habitos (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  id_paciente INT NOT NULL,
-  id_nutricionista INT NOT NULL,
-  descripcion TEXT NOT NULL,
-  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+CREATE TABLE `consultas` (
+  `id` bigint(20) NOT NULL,
+  `id_paciente` bigint(20) NOT NULL,
+  `fecha` datetime NOT NULL DEFAULT current_timestamp(),
+  `peso_kg` decimal(6,2) DEFAULT NULL,
+  `altura_cm` decimal(5,1) DEFAULT NULL,
+  `masa_muscular_pct` decimal(5,2) DEFAULT NULL,
+  `comentarios` text DEFAULT NULL,
+  `habitos_cumplidos` text DEFAULT NULL,
+  `objetivos_trabajados` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Jornadas
-CREATE TABLE IF NOT EXISTS jornadas (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  id_nutricionista INT NOT NULL,
-  hora_inicio TIME NOT NULL,
-  hora_fin TIME NOT NULL,
-  dias_semana VARCHAR(20) NOT NULL, -- e.g. '1,2,3,4,5'
-  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+--
+-- Volcado de datos para la tabla `consultas`
+--
 
--- Días no laborales
-CREATE TABLE IF NOT EXISTS dias_no_laborales (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  id_nutricionista INT NOT NULL,
-  fecha DATE NOT NULL,
-  motivo VARCHAR(255),
-  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-```
--- Completados de hábitos (registro diario de cumplimiento por paciente)
-CREATE TABLE IF NOT EXISTS habit_completados (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  id_habito INT NOT NULL,
-  id_paciente INT NOT NULL,
-  fecha DATE NOT NULL,
-  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_hab_fecha (id_habito, id_paciente, fecha)
-);
+INSERT INTO `consultas` (`id`, `id_paciente`, `fecha`, `peso_kg`, `altura_cm`, `masa_muscular_pct`, `comentarios`, `habitos_cumplidos`, `objetivos_trabajados`) VALUES
+(5, 17, '2025-11-12 05:03:00', 60.00, NULL, NULL, NULL, NULL, NULL),
+(6, 17, '2025-10-12 05:03:00', 55.00, NULL, NULL, NULL, NULL, NULL),
+(7, 17, '2025-09-12 05:03:00', 50.00, NULL, NULL, NULL, NULL, NULL),
+(8, 17, '2025-11-01 05:03:00', 54.00, NULL, NULL, NULL, NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `contactos`
+--
+
+CREATE TABLE `contactos` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `nombre` varchar(100) NOT NULL,
+  `texto` text NOT NULL,
+  `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `contactos`
+--
+
+INSERT INTO `contactos` (`id`, `email`, `nombre`, `texto`, `creado_en`) VALUES
+(1, 'ffacurrombo@gmail.com', 'Facundo Rombola', 'Prueba carga de contacto en base de datos', '2025-11-12 02:36:50'),
+(2, 'fernandocibau89@gmail.com', 'Alejandra Rodriguez', 'Hola quiero bajar de pesoooooooo.', '2025-11-15 00:14:13');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `diario`
+--
+
+CREATE TABLE `diario` (
+  `id` bigint(20) NOT NULL,
+  `id_paciente` bigint(20) NOT NULL,
+  `fecha_hora` datetime NOT NULL,
+  `tipo_comida` enum('desayuno','almuerzo','merienda','cena','snack') NOT NULL,
+  `detalles` text DEFAULT NULL,
+  `url_foto` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `diario`
+--
+
+INSERT INTO `diario` (`id`, `id_paciente`, `fecha_hora`, `tipo_comida`, `detalles`, `url_foto`) VALUES
+(13, 17, '2025-11-15 01:02:57', 'desayuno', 'Hola probando', '//public/uploads/comidas/comida_6917c331b3e31.png'),
+(14, 17, '2025-11-15 01:04:02', 'desayuno', '123123', '//public/uploads/comidas/comida_6917c37265f15.png');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `estados`
+--
+
+CREATE TABLE `estados` (
+  `id` bigint(20) NOT NULL,
+  `nombre` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `estados`
+--
+
+INSERT INTO `estados` (`id`, `nombre`) VALUES
+(1, 'activo'),
+(3, 'inactivo'),
+(2, 'pendiente');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `habitos`
+--
+
+CREATE TABLE `habitos` (
+  `id` bigint(20) NOT NULL,
+  `id_paciente` bigint(20) NOT NULL,
+  `nombre` varchar(255) NOT NULL,
+  `color` varchar(50) DEFAULT NULL,
+  `visibilidad` enum('publico','privado') NOT NULL DEFAULT 'publico',
+  `creado_por` enum('paciente','nutricionista') NOT NULL,
+  `racha_dias` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `habitos`
+--
+
+INSERT INTO `habitos` (`id`, `id_paciente`, `nombre`, `color`, `visibilidad`, `creado_por`, `racha_dias`) VALUES
+(5, 17, 'Tomar 2 lts de agua', '#0d6efd', 'publico', 'nutricionista', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `habit_completados`
+--
+
+CREATE TABLE `habit_completados` (
+  `id` bigint(20) NOT NULL,
+  `id_habito` bigint(20) NOT NULL,
+  `id_paciente` bigint(20) NOT NULL,
+  `fecha` date NOT NULL,
+  `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `habit_completados`
+--
+
+INSERT INTO `habit_completados` (`id`, `id_habito`, `id_paciente`, `fecha`, `creado_en`) VALUES
+(3, 5, 17, '2025-11-12', '2025-11-12 04:05:18');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `notificaciones`
+--
+
+CREATE TABLE `notificaciones` (
+  `id` int(11) NOT NULL,
+  `tipo` varchar(50) NOT NULL,
+  `contenido` text NOT NULL,
+  `creado_por` int(11) DEFAULT NULL,
+  `creado_en` datetime DEFAULT current_timestamp(),
+  `leido` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `nutricionistas`
+--
+
+CREATE TABLE `nutricionistas` (
+  `id` bigint(20) NOT NULL,
+  `id_usuario` bigint(20) DEFAULT NULL,
+  `creado_en` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `nutricionistas`
+--
+
+INSERT INTO `nutricionistas` (`id`, `id_usuario`, `creado_en`) VALUES
+(7, 38, '2025-11-12 00:54:53'),
+(8, 43, '2025-11-12 12:51:47'),
+(12, 48, '2025-11-12 22:58:13');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `pacientes`
+--
+
+CREATE TABLE `pacientes` (
+  `id` bigint(20) NOT NULL,
+  `id_usuario` bigint(20) DEFAULT NULL,
+  `id_nutricionista` bigint(20) DEFAULT NULL,
+  `dni` varchar(50) DEFAULT NULL,
+  `fecha_nacimiento` date DEFAULT NULL,
+  `telefono` varchar(50) DEFAULT NULL,
+  `objetivo_principal` text DEFAULT NULL,
+  `progreso_objetivo` int(11) NOT NULL DEFAULT 0,
+  `creado_en` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `pacientes`
+--
+
+INSERT INTO `pacientes` (`id`, `id_usuario`, `id_nutricionista`, `dni`, `fecha_nacimiento`, `telefono`, `objetivo_principal`, `progreso_objetivo`, `creado_en`) VALUES
+(17, 39, 7, '12321312', '1999-11-12', '1130321164', 'Aumentar masa Muscular', 0, '2025-11-12 00:56:56'),
+(18, NULL, 7, NULL, NULL, NULL, NULL, 0, '2025-11-12 00:59:58'),
+(19, NULL, 7, NULL, NULL, NULL, NULL, 0, '2025-11-12 01:01:04'),
+(22, 51, 12, NULL, NULL, NULL, NULL, 0, '2025-11-14 21:12:58');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `recetas`
+--
+
+CREATE TABLE `recetas` (
+  `id` bigint(20) NOT NULL,
+  `id_nutricionista` bigint(20) NOT NULL,
+  `titulo` varchar(255) NOT NULL,
+  `contenido` text DEFAULT NULL,
+  `tags` varchar(255) DEFAULT NULL,
+  `publicado` tinyint(1) NOT NULL DEFAULT 1,
+  `creado_en` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `roles`
+--
+
+CREATE TABLE `roles` (
+  `id` int(11) NOT NULL,
+  `nombre` varchar(50) NOT NULL,
+  `descripcion` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `roles`
+--
+
+INSERT INTO `roles` (`id`, `nombre`, `descripcion`) VALUES
+(1, 'superadmin', 'Acceso total al sistema'),
+(2, 'nutricionista', 'Cuenta profesional de nutricionista'),
+(3, 'paciente', 'Cuenta de paciente');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `turnos`
+--
+
+CREATE TABLE `turnos` (
+  `id` bigint(20) NOT NULL,
+  `id_nutricionista` bigint(20) NOT NULL,
+  `id_paciente` bigint(20) NOT NULL,
+  `fecha_hora` datetime NOT NULL,
+  `senia` decimal(10,2) DEFAULT 0.00,
+  `pagado` tinyint(1) NOT NULL DEFAULT 0,
+  `creado_en` datetime NOT NULL DEFAULT current_timestamp(),
+  `id_estado` bigint(20) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `turnos`
+--
+
+INSERT INTO `turnos` (`id`, `id_nutricionista`, `id_paciente`, `fecha_hora`, `senia`, `pagado`, `creado_en`, `id_estado`) VALUES
+(19, 7, 17, '2025-11-14 21:08:00', 0.00, 1, '2025-11-14 21:08:54', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `usuarios`
+--
+
+CREATE TABLE `usuarios` (
+  `id` bigint(20) NOT NULL,
+  `nombre` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `role_id` int(11) NOT NULL,
+  `creado_en` datetime NOT NULL DEFAULT current_timestamp(),
+  `reset_token` varchar(255) DEFAULT NULL,
+  `reset_token_exp` datetime DEFAULT NULL,
+  `id_estado` bigint(20) DEFAULT NULL,
+  `fecha_desactivacion` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `usuarios`
+--
+
+INSERT INTO `usuarios` (`id`, `nombre`, `email`, `password`, `role_id`, `creado_en`, `reset_token`, `reset_token_exp`, `id_estado`, `fecha_desactivacion`) VALUES
+(1, 'Admin Principal', 'admin@nutri.test', '$2y$10$8pZzf.Qu89DHIy3X6cchN.Hga9A97tfvaAie1QMr8wiBXR6sbqnnC', 1, '2025-09-27 20:52:29', '672f34bb3f6708e39f77f471a1605e17f577a4e8b2fb9de547007d03c86de845', '2025-11-13 02:54:16', 1, NULL),
+(38, 'Juan Barela', 'nutricionista@nutri.test', '$2y$10$yPvyBTvIG99GIqD2kd0l9uHfDpSVTTMrMEilyNPP.AFXy/JOkLSYW', 2, '2025-11-12 00:54:53', '65647236a1e05eec85fcde771c4aa38c86570356b47432f727141ca021c16eb3', '2025-11-13 04:54:53', 2, NULL),
+(39, 'Sofia Laura Perez', 'paciente@nutri.test', '$2y$10$ZUZLeHUGmJbjGrkTmjFAs.x7hwla8Df84BlQZsR5L5LCByxGbR9K.', 3, '2025-11-12 00:56:56', NULL, NULL, 1, '2025-11-12'),
+(43, 'fernando nutri', 'fernandocibau@hotmail.com', '$2y$10$uW0wBq3I18Va13fxjLG5A.sRuoHx3CJSAoOTddaK/7.p6VkhS3oSG', 2, '2025-11-12 12:51:47', 'a30d88df47023921152773dcc4efa62da215de336d9fd8f519f193589b25eb5c', '2025-11-13 16:51:47', 1, NULL),
+(44, 'Nancy Gambacotar', 'thekitin@hotmail.com', '$2y$10$60dJPHkg1TZaYC9DW1MDMOxr1A84vobeA.a242MVYpe.URPcg3ggq', 1, '2025-11-12 20:38:42', 'f5db3449c5ecec42bc6e8dbb4c9cca0add6259f12be26fb758ec31fc209c290d', '2025-11-14 00:38:42', 1, NULL),
+(48, 'fernando cibau', 'fernandocibau89@gmail.com', '$2y$10$O/PQO7/PFpX7/cLMy8J5kugdVuzLYy/u.7uakcqASlx9nX7iPwPdO', 2, '2025-11-12 22:58:13', NULL, NULL, 1, NULL),
+(51, 'Tomas Fernandez', 'tomasfernandez@nutri.test', '$2y$10$lN4TgAhQdbWa/QwNFSa2w.7IIjpYf2yAmWNBIaD4AfpkJNAvV32mG', 3, '2025-11-14 21:12:58', '4971af70784d01fd04a3de8f68b41af87c78d37b081c4b361927546733226dcc', '2025-11-16 01:12:58', 2, NULL);
+
+--
+-- Disparadores `usuarios`
+--
+DELIMITER $$
+CREATE TRIGGER `eliminar_paciente_inactivo` AFTER DELETE ON `usuarios` FOR EACH ROW BEGIN
+    DELETE FROM pacientes 
+     WHERE id_usuario = OLD.id;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `marca_desactivacion` BEFORE UPDATE ON `usuarios` FOR EACH ROW BEGIN
+IF OLD.id_estado = 1 AND 
+    NEW.id_estado = 3 THEN
+    SET NEW.fecha_desactivacion = NOW();
+    END IF;
+END
+$$
+DELIMITER ;
+
+--
+-- Índices para tablas volcadas
+--
+
+--
+-- Indices de la tabla `archivos_plan`
+--
+ALTER TABLE `archivos_plan`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_archivos_plan_id_paciente` (`id_paciente`);
+
+--
+-- Indices de la tabla `consultas`
+--
+ALTER TABLE `consultas`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_consultas_id_paciente` (`id_paciente`);
+
+--
+-- Indices de la tabla `contactos`
+--
+ALTER TABLE `contactos`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indices de la tabla `diario`
+--
+ALTER TABLE `diario`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_diario_id_paciente` (`id_paciente`);
+
+--
+-- Indices de la tabla `estados`
+--
+ALTER TABLE `estados`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `nombre` (`nombre`);
+
+--
+-- Indices de la tabla `habitos`
+--
+ALTER TABLE `habitos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_habitos_id_paciente` (`id_paciente`);
+
+--
+-- Indices de la tabla `habit_completados`
+--
+ALTER TABLE `habit_completados`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_hc_habito_paciente_fecha` (`id_habito`,`id_paciente`,`fecha`),
+  ADD KEY `idx_hc_habito` (`id_habito`),
+  ADD KEY `idx_hc_paciente` (`id_paciente`);
+
+--
+-- Indices de la tabla `notificaciones`
+--
+ALTER TABLE `notificaciones`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indices de la tabla `nutricionistas`
+--
+ALTER TABLE `nutricionistas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `id_usuario` (`id_usuario`),
+  ADD KEY `idx_nutricionistas_id_usuario` (`id_usuario`);
+
+--
+-- Indices de la tabla `pacientes`
+--
+ALTER TABLE `pacientes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `dni` (`dni`),
+  ADD UNIQUE KEY `id_usuario` (`id_usuario`),
+  ADD KEY `idx_pacientes_id_nutricionista` (`id_nutricionista`);
+
+--
+-- Indices de la tabla `recetas`
+--
+ALTER TABLE `recetas`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_recetas_id_nutricionista` (`id_nutricionista`);
+
+--
+-- Indices de la tabla `roles`
+--
+ALTER TABLE `roles`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `nombre` (`nombre`);
+
+--
+-- Indices de la tabla `turnos`
+--
+ALTER TABLE `turnos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_turnos_id_nutricionista` (`id_nutricionista`),
+  ADD KEY `idx_turnos_id_paciente` (`id_paciente`);
+
+--
+-- Indices de la tabla `usuarios`
+--
+ALTER TABLE `usuarios`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD KEY `idx_usuarios_role_id` (`role_id`),
+  ADD KEY `fk_usuarios_estado` (`id_estado`);
+
+--
+-- AUTO_INCREMENT de las tablas volcadas
+--
+
+--
+-- AUTO_INCREMENT de la tabla `archivos_plan`
+--
+ALTER TABLE `archivos_plan`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT de la tabla `consultas`
+--
+ALTER TABLE `consultas`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- AUTO_INCREMENT de la tabla `contactos`
+--
+ALTER TABLE `contactos`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT de la tabla `diario`
+--
+ALTER TABLE `diario`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+--
+-- AUTO_INCREMENT de la tabla `estados`
+--
+ALTER TABLE `estados`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT de la tabla `habitos`
+--
+ALTER TABLE `habitos`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT de la tabla `habit_completados`
+--
+ALTER TABLE `habit_completados`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT de la tabla `notificaciones`
+--
+ALTER TABLE `notificaciones`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT de la tabla `nutricionistas`
+--
+ALTER TABLE `nutricionistas`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT de la tabla `pacientes`
+--
+ALTER TABLE `pacientes`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+
+--
+-- AUTO_INCREMENT de la tabla `recetas`
+--
+ALTER TABLE `recetas`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT de la tabla `roles`
+--
+ALTER TABLE `roles`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT de la tabla `turnos`
+--
+ALTER TABLE `turnos`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+
+--
+-- AUTO_INCREMENT de la tabla `usuarios`
+--
+ALTER TABLE `usuarios`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
+
+--
+-- Restricciones para tablas volcadas
+--
+
+--
+-- Filtros para la tabla `archivos_plan`
+--
+ALTER TABLE `archivos_plan`
+  ADD CONSTRAINT `fk_archivos_plan_paciente` FOREIGN KEY (`id_paciente`) REFERENCES `pacientes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `consultas`
+--
+ALTER TABLE `consultas`
+  ADD CONSTRAINT `fk_consultas_paciente` FOREIGN KEY (`id_paciente`) REFERENCES `pacientes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `diario`
+--
+ALTER TABLE `diario`
+  ADD CONSTRAINT `fk_diario_paciente` FOREIGN KEY (`id_paciente`) REFERENCES `pacientes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `habitos`
+--
+ALTER TABLE `habitos`
+  ADD CONSTRAINT `fk_habitos_paciente` FOREIGN KEY (`id_paciente`) REFERENCES `pacientes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `habit_completados`
+--
+ALTER TABLE `habit_completados`
+  ADD CONSTRAINT `fk_hc_habito` FOREIGN KEY (`id_habito`) REFERENCES `habitos` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_hc_paciente` FOREIGN KEY (`id_paciente`) REFERENCES `pacientes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `nutricionistas`
+--
+ALTER TABLE `nutricionistas`
+  ADD CONSTRAINT `fk_nutricionistas_usuario` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `pacientes`
+--
+ALTER TABLE `pacientes`
+  ADD CONSTRAINT `fk_pacientes_nutricionista` FOREIGN KEY (`id_nutricionista`) REFERENCES `nutricionistas` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_pacientes_usuario` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `recetas`
+--
+ALTER TABLE `recetas`
+  ADD CONSTRAINT `fk_recetas_nutricionista` FOREIGN KEY (`id_nutricionista`) REFERENCES `nutricionistas` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `turnos`
+--
+ALTER TABLE `turnos`
+  ADD CONSTRAINT `fk_turnos_nutricionista` FOREIGN KEY (`id_nutricionista`) REFERENCES `nutricionistas` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_turnos_paciente` FOREIGN KEY (`id_paciente`) REFERENCES `pacientes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `usuarios`
+--
+ALTER TABLE `usuarios`
+  ADD CONSTRAINT `fk_usuarios_estado` FOREIGN KEY (`id_estado`) REFERENCES `estados` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_usuarios_roles` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON UPDATE CASCADE;
+
+DELIMITER $$
+--
+-- Eventos
+--
+CREATE DEFINER=`admin`@`nutri.test` EVENT `eliminar_usuario_inactivo` ON SCHEDULE EVERY 5 DAY STARTS '2025-11-01 00:00:00' ENDS '2027-10-01 00:27:29' ON COMPLETION PRESERVE ENABLE COMMENT 'ELIMINAR USUARIO INACTIVO (REVISA CADA 5 DÍAS)' DO DELETE FROM usuarios WHERE
+fecha_desactivacion IS NOT NULL AND fecha_desactivacion <= NOW() - INTERVAL 60 DAY$$
+
+DELIMITER ;
+COMMIT;
 
 ---
 
