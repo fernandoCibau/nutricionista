@@ -75,7 +75,7 @@ if (isset($_GET['exito'])) {
 
    <!-- Header -->
     <header class="navbar">
-        <a href="index.php" class="navbar-brand">
+        <a href="../public/index.php" class="navbar-brand">
             <i class="bi bi-heart-pulse fs-4 me-2"></i>
             <strong>NutriApp</strong>
         </a>
